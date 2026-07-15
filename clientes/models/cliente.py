@@ -21,3 +21,7 @@ class Cliente(models.Model):
         
     def __str__(self):
         return f"{self.usuario.first_name} {self.usuario.last_name}"
+    
+    @property
+    def esta_activo(self):
+        return self.usuario.is_active
