@@ -1,0 +1,1 @@
+from .pedidos import Pedido
