@@ -61,4 +61,11 @@ def eliminar_producto(pedido, producto):
         producto,
         nueva_cantidad=0
     )
+    
+def vaciar_carrito(pedido):
+    pedido.detalles_pedido.all().delete()
+    
+    actualizar_totales(pedido)
+    
+    return pedido
                 

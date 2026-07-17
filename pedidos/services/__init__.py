@@ -8,4 +8,5 @@ from .carrito import (
     agregar_producto,
     actualizar_cantidad,
     eliminar_producto,
+    vaciar_carrito,
 )
