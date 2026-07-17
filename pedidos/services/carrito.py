@@ -29,4 +29,29 @@ def agregar_producto(pedido, producto, cantidad):
     actualizar_totales(pedido)
     
     return detalle
+
+def actualizar_cantidad(pedido, producto, nueva_cantidad):
+    detalle = pedido.detalles_pedido.filter(
+        producto=producto
+    ).first()
+    
+    if detalle is None:
+        raise ValueError("El producto no existe en el pedido.")
+    
+    if nueva_cantidad < 0:
+        raise ValueError("La cantidad no puede ser negativa.")
+    
+    if nueva_cantidad == 0:
+        detalle.delete()
+        actualizar_totales(pedido)
+        return None
+    
+    validar_stock(producto, nueva_cantidad)
+    
+    detalle.cantidad = nueva_cantidad
+    detalle.save()
+    
+    actualizar_totales(pedido)
+    
+    return detalle
                 
