@@ -1,6 +1,7 @@
 from django.db import models
+from core.models.base_model import BaseModel
 
-class ImagenProducto(models.Model):
+class ImagenProducto(BaseModel):
     
     producto = models.ForeignKey(
         "catalogo.Producto",

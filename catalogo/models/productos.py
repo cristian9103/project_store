@@ -1,7 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from core.models.base_model import BaseModel
 
-class Producto(models.Model):
+class Producto(BaseModel):
     
     categoria = models.ForeignKey(
         "catalogo.Categoria",
@@ -40,8 +41,6 @@ class Producto(models.Model):
         help_text="Cantidad disponible para la venta."
     )
     activo = models.BooleanField(default=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
     
     class Meta:
         verbose_name = "Producto"

@@ -1,7 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from core.models.base_model import BaseModel
 
-class DetallePedido(models.Model):
+class DetallePedido(BaseModel):
     pedido = models.ForeignKey(
         "pedidos.Pedido",
         on_delete=models.CASCADE,
@@ -31,7 +32,6 @@ class DetallePedido(models.Model):
             MinValueValidator(0)
         ]
     )
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         verbose_name = "Detalle Pedido"

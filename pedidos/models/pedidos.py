@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from core.models.base_model import BaseModel
 
 class EstadoPedido(models.TextChoices):
     PENDIENTE = "PE", "Pendiente"
@@ -9,7 +10,7 @@ class EstadoPedido(models.TextChoices):
     ENTREGADO = "ET", "Entregado"
     CANCELADO = "CA", "Cancelado"
 
-class Pedido(models.Model):
+class Pedido(BaseModel):
     cliente = models.ForeignKey(
         "clientes.Cliente",
         on_delete=models.PROTECT,

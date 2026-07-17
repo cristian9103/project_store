@@ -1,7 +1,8 @@
 from django.db import models
 from django.conf import settings
+from core.models.base_model import BaseModel
 
-class Cliente(models.Model):
+class Cliente(BaseModel):
     
     usuario = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -11,7 +12,6 @@ class Cliente(models.Model):
     
     documento = models.CharField(max_length=15, unique=True)
     telefono = models.CharField(max_length=20)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         verbose_name = "Clente"

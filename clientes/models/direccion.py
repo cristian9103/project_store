@@ -1,6 +1,7 @@
 from django.db import models
+from core.models.base_model import BaseModel
 
-class Direccion(models.Model):
+class Direccion(BaseModel):
     cliente = models.ForeignKey(
         "clientes.Cliente",
         on_delete=models.CASCADE,
