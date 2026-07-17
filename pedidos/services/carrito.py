@@ -54,4 +54,11 @@ def actualizar_cantidad(pedido, producto, nueva_cantidad):
     actualizar_totales(pedido)
     
     return detalle
+
+def eliminar_producto(pedido, producto):
+    return actualizar_cantidad(
+        pedido,
+        producto,
+        nueva_cantidad=0
+    )
                 

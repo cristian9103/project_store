@@ -7,4 +7,5 @@ from .calculos import (
 from .carrito import (
     agregar_producto,
     actualizar_cantidad,
+    eliminar_producto,
 )
