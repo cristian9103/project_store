@@ -10,3 +10,7 @@ from .carrito import (
     eliminar_producto,
     vaciar_carrito,
 )
+
+from .pedidos import (
+    crear_pedido,
+)
