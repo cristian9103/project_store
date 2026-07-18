@@ -1,5 +1,8 @@
 from pedidos.models.pedidos import Pedido, EstadoPedido
-from .calculos import ZERO
+from .calculos import ZERO, actualizar_totales
+from .stock import validar_stock, descontar_stock
+
+from django.db import transaction
 
 def crear_pedido(cliente):
     pedido = Pedido.objects.filter(
@@ -17,4 +20,40 @@ def crear_pedido(cliente):
         costo_envio=ZERO,
         descuento = ZERO,
         total=ZERO,
-    )    
+    ) 
+    
+def confirmar_pedido(pedido):
+    
+    with transaction.atomic():
+        
+        if not pedido.detalles_pedido.exists():
+            raise ValueError("El pedido no tiene productos.")
+        
+        for detalle in pedido.detalles_pedido.select_related("producto"):
+            validar_stock(
+                detalle.producto,
+                detalle.cantidad
+            )
+            
+        for detalle in pedido.detalles_pedido.select_related("producto"):
+            descontar_stock(
+                detalle.producto,
+                detalle.cantidad
+            )
+            
+        actualizar_totales(pedido)
+        
+        if pedido.estado != EstadoPedido.PENDIENTE:
+            raise ValueError("Solo los pedidos pendientes pueden confirmarse.")
+        
+        pedido.estado = EstadoPedido.PREPARACION
+        
+        pedido.save(
+            update_fields=[
+                "estado",
+                "subtotal",
+                "total"
+            ]
+        )
+        
+        return pedido

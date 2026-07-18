@@ -13,4 +13,10 @@ from .carrito import (
 
 from .pedidos import (
     crear_pedido,
+    confirmar_pedido,
+)
+
+from .stock import (
+    validar_stock,
+    descontar_stock,
 )
