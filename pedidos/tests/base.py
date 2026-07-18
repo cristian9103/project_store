@@ -5,7 +5,7 @@ from django.test import TestCase
 from usuarios.models import Usuario
 from clientes.models import Cliente
 from catalogo.models import Categoria, Marca, Producto
-from pedidos.models import Pedido, EstadoPedido
+from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.services import ZERO
 
 class BaseTestCase(TestCase):
@@ -49,5 +49,23 @@ class BaseTestCase(TestCase):
             costo_envio=ZERO,
             descuento=ZERO,
             total=ZERO,
+        )
+        
+    def crear_detalle(
+        self,
+        producto=None,
+        cantidad=1,
+        precio_unitario=None,
+    ):
+        producto = producto or self.producto
+
+        if precio_unitario is None:
+            precio_unitario = producto.precio_venta
+
+        return DetallePedido.objects.create(
+            pedido=self.pedido,
+            producto=producto,
+            precio_unitario=precio_unitario,
+            cantidad=cantidad,
         )
         
