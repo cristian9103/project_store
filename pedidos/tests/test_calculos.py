@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from pedidos.models import DetallePedido
-from pedidos.services.calculos import calcular_subtotal
+from pedidos.services import calcular_subtotal, ZERO
 from catalogo.models import Producto
 
 from .base import BaseTestCase
@@ -72,5 +72,16 @@ class CalculosTestCase(BaseTestCase):
         self.assertEqual(
             subtotal,
             Decimal("70_000.00")
+        )
+        
+    def test_calcular_subtotal_sin_productos(self):
+        
+        # Act
+        subtotal = calcular_subtotal(self.pedido)
+        
+        # Assert
+        self.assertEqual(
+            subtotal,
+            ZERO
         )
         
