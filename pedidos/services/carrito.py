@@ -1,5 +1,6 @@
 from .stock import validar_stock
 from .calculos import actualizar_totales
+from pedidos.exceptions import ProductoNoExisteEnPedidoError, CantidadInvalidaError
 
 from pedidos.models.detalles_pedido import DetallePedido
 
@@ -36,10 +37,10 @@ def actualizar_cantidad(pedido, producto, nueva_cantidad):
     ).first()
     
     if detalle is None:
-        raise ValueError("El producto no existe en el pedido.")
+        raise ProductoNoExisteEnPedidoError("El producto no existe en el pedido.")
     
     if nueva_cantidad < 0:
-        raise ValueError("La cantidad no puede ser negativa.")
+        raise CantidadInvalidaError("La cantidad no puede ser negativa.")
     
     if nueva_cantidad == 0:
         detalle.delete()

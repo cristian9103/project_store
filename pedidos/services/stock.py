@@ -1,11 +1,9 @@
 from django.db.models import F
-
-class StockInsuficiente(Exception):
-    pass
+from pedidos.exceptions import StockInsuficienteError
 
 def validar_stock(producto, cantidad):
     if cantidad > producto.stock:
-        raise StockInsuficiente("La cantidad en el stock actual es menor a la deseada.")
+        raise StockInsuficienteError("La cantidad en el stock actual es menor a la deseada.")
     
 def descontar_stock(producto, cantidad):
     validar_stock(producto, cantidad)

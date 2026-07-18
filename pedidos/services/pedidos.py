@@ -1,6 +1,7 @@
 from pedidos.models.pedidos import Pedido, EstadoPedido
 from .calculos import ZERO, actualizar_totales
 from .stock import validar_stock, descontar_stock
+from pedidos.exceptions import PedidoVacioError, EstadoPedidoInvalidoError
 
 from django.db import transaction
 
@@ -27,7 +28,7 @@ def confirmar_pedido(pedido):
     with transaction.atomic():
         
         if not pedido.detalles_pedido.exists():
-            raise ValueError("El pedido no tiene productos.")
+            raise PedidoVacioError("El pedido no tiene productos.")
         
         for detalle in pedido.detalles_pedido.select_related("producto"):
             validar_stock(
@@ -44,7 +45,7 @@ def confirmar_pedido(pedido):
         actualizar_totales(pedido)
         
         if pedido.estado != EstadoPedido.PENDIENTE:
-            raise ValueError("Solo los pedidos pendientes pueden confirmarse.")
+            raise EstadoPedidoInvalidoError("Solo los pedidos pendientes pueden confirmarse.")
         
         pedido.estado = EstadoPedido.PREPARACION
         
