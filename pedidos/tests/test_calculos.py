@@ -29,3 +29,18 @@ class CalculosTestCase(BaseTestCase):
             subtotal,
             Decimal("40_000.00")
         )
+        
+    def test_calcular_subtotal_con_un_producto(self):
+        
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        # Act
+        subtotal = calcular_subtotal(self.pedido)
+        
+        # Assert
+        self.assertEqual(
+            subtotal,
+            Decimal("40_000.00")
+        )
+        
