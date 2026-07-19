@@ -13,7 +13,9 @@ from .base import BaseTestCase
 
 class CalculosTestCase(BaseTestCase):
     
-    # calcular_subtotal()
+    #-----------------------------------------
+    # Calcular_subtotal()
+    #-----------------------------------------
     def test_calcular_subtotal(self):
 
         # Arrange
@@ -90,7 +92,9 @@ class CalculosTestCase(BaseTestCase):
             ZERO
         )
         
-    # calcular_total()
+    #-----------------------------------------
+    # Calcular_total()
+    #-----------------------------------------
     def test_calcular_total_sin_envio_ni_descuento(self):
         
         # Arrange
@@ -153,5 +157,43 @@ class CalculosTestCase(BaseTestCase):
         self.assertEqual(
             total,
             Decimal("45_000.00")
+        )
+        
+    #-----------------------------------------
+    # Actualizar_totales()
+    #-----------------------------------------
+    def test_actualizar_totales_actualiza_subtotal(self):
+        
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        # Act
+        actualizar_totales(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        
+        # Assert
+        self.assertEqual(
+            self.pedido.subtotal,
+            Decimal("40_000.00")
+        )
+    
+    def test_actualizar_totales_actualiza_total(self):
+        
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        self.pedido.costo_envio = Decimal("8_000.00")
+        self.pedido.save(update_fields=["costo_envio"])
+        
+        # Act
+        actualizar_totales(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        
+        # Assert
+        self.assertEqual(
+            self.pedido.total,
+            Decimal("48_000.00")
         )
         
