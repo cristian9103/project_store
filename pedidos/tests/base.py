@@ -21,7 +21,6 @@ class BaseTestCase(TestCase):
             usuario=self.usuario,
             documento="123456789",
             telefono="3001234567",
-            direccion="Calle 123",
         )
         
         self.categoria = Categoria.objects.create(

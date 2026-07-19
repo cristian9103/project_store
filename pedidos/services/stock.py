@@ -3,7 +3,9 @@ from pedidos.exceptions import StockInsuficienteError
 
 def validar_stock(producto, cantidad):
     if cantidad > producto.stock:
-        raise StockInsuficienteError("La cantidad en el stock actual es menor a la deseada.")
+        raise StockInsuficienteError("No hay stock suficiente.")
+    
+    return True
     
 def descontar_stock(producto, cantidad):
     validar_stock(producto, cantidad)
