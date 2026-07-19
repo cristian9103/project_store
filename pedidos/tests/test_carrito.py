@@ -301,4 +301,27 @@ class CarritoTestCase(BaseTestCase):
             pedido.total,
             ZERO
         )
+        
+    def test_vaciar_carrito_vacio(self):
+        
+        # Act
+        pedido = vaciar_carrito(self.pedido)
+        
+        # Assert
+        self.assertEqual(
+            pedido.detalles_pedido.count(),
+            0
+        )
+        
+        pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pedido.subtotal,
+            ZERO
+        )
+        
+        self.assertEqual(
+            pedido.total,
+            ZERO
+        )
     
