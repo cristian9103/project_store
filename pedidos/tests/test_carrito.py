@@ -1,5 +1,12 @@
 from .base import BaseTestCase
-from pedidos.services import agregar_producto, actualizar_cantidad, ZERO
+from catalogo.models import Producto
+from pedidos.services import (
+    agregar_producto, 
+    actualizar_cantidad, 
+    ZERO, 
+    eliminar_producto,
+    vaciar_carrito
+)
 
 from pedidos.exceptions import (
     StockInsuficienteError, 
@@ -220,11 +227,78 @@ class CarritoTestCase(BaseTestCase):
     # eliminar_producto()
     #-----------------------------------------
     def test_eliminar_producto(self):
-        pass
+        
+        # Arrange
+        self.crear_detalle(cantidad=3)
+        
+        # Act
+        resultado = eliminar_producto(
+            self.pedido,
+            self.producto
+        )
+        
+        # Assert
+        self.assertIsNone(resultado)
+        
+        self.assertEqual(
+            self.pedido.detalles_pedido.count(),
+            0
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.subtotal,
+            ZERO
+        )
+        
+        self.assertEqual(
+            self.pedido.total,
+            ZERO
+        )
     
     #-----------------------------------------
     # vaciar_carrito()
     #-----------------------------------------
     def test_vaciar_carrito(self):
-        pass
+        
+        # Arrange
+        producto2 = Producto.objects.create(
+            categoria=self.categoria,
+            marca=self.marca,
+            sku="CRE001",
+            nombre="Crema Facial",
+            descripcion="",
+            precio_compra=Decimal("15_000.00"),
+            precio_venta=Decimal("30_000.00"),
+            stock=10,
+        )
+        
+        self.crear_detalle(cantidad=2)
+        
+        self.crear_detalle(
+            producto=producto2,
+            cantidad=1
+        )
+        
+        # Act
+        pedido = vaciar_carrito(self.pedido)
+        
+        # Assert
+        self.assertEqual(
+            pedido.detalles_pedido.count(),
+            0
+        )
+        
+        pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pedido.subtotal,
+            ZERO
+        )
+        
+        self.assertEqual(
+            pedido.total,
+            ZERO
+        )
     
