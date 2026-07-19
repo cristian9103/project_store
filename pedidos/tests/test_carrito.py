@@ -1,6 +1,6 @@
 from .base import BaseTestCase
-from pedidos.services import agregar_producto, actualizar_cantidad
-from pedidos.exceptions import StockInsuficienteError
+from pedidos.services import agregar_producto, actualizar_cantidad, ZERO
+from pedidos.exceptions import StockInsuficienteError, CantidadInvalidaError
 from decimal import Decimal
 
 class CarritoTestCase(BaseTestCase):
@@ -129,10 +129,56 @@ class CarritoTestCase(BaseTestCase):
         )
     
     def test_actualizar_cantidad_a_cero(self):
-        pass
+        
+        # Arrange
+        self.crear_detalle(cantidad=3)
+        
+        # Act
+        resultado = actualizar_cantidad(
+            self.pedido,
+            self.producto,
+            nueva_cantidad=0
+        )
+        
+        # Assert
+        self.assertIsNone(resultado)
+        
+        self.assertEqual(
+            self.pedido.detalles_pedido.count(),
+            0
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.subtotal,
+            ZERO
+        )
+        
+        self.assertEqual(
+            self.pedido.total,
+            ZERO
+        )
     
     def test_actualizar_cantidad_negativa(self):
-        pass
+        
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        # Act + Assert
+        with self.assertRaises(CantidadInvalidaError):
+            actualizar_cantidad(
+                self.pedido,
+                self.producto,
+                nueva_cantidad=-3
+            )
+            
+        detalle = self.pedido.detalles_pedido.get()
+        
+        self.assertEqual(
+            detalle.cantidad,
+            2
+        )
     
     def test_actualizar_cantidad_producto_inexistente():
         pass
