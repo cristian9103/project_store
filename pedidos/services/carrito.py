@@ -5,9 +5,11 @@ from pedidos.exceptions import ProductoNoExisteEnPedidoError, CantidadInvalidaEr
 from pedidos.models.detalles_pedido import DetallePedido
 
 def agregar_producto(pedido, producto, cantidad):
-    detalle = pedido.detalles_pedido.filter(
-        producto=producto
-    ).first()
+    
+    try:
+        detalle = pedido.detalles_pedido.get(producto=producto)
+    except DetallePedido.DoesNotExist:
+        detalle = None
     
     if detalle:
         validar_stock(producto, detalle.cantidad + cantidad)
