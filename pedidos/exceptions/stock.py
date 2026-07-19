@@ -3,5 +3,5 @@ class StockError(Exception):
     pass
 
 class StockInsuficienteError(StockError):
-    """No hay suficientes unidades disponibles."""
+    """No hay stock suficiente."""
     pass
