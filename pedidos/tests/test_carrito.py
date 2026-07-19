@@ -1,6 +1,12 @@
 from .base import BaseTestCase
 from pedidos.services import agregar_producto, actualizar_cantidad, ZERO
-from pedidos.exceptions import StockInsuficienteError, CantidadInvalidaError
+
+from pedidos.exceptions import (
+    StockInsuficienteError, 
+    CantidadInvalidaError,
+    ProductoNoExisteEnPedidoError   
+)
+
 from decimal import Decimal
 
 class CarritoTestCase(BaseTestCase):
@@ -98,7 +104,7 @@ class CarritoTestCase(BaseTestCase):
     #-----------------------------------------
     # actualizar_cantidad()
     #-----------------------------------------
-    def test_actualizar_cantidad(self):
+    def test_actualizar_cantidad_actualiza_detalle(self):
         
         # Arrange
         self.crear_detalle(cantidad=2)
@@ -128,7 +134,7 @@ class CarritoTestCase(BaseTestCase):
             Decimal("100_000.00")
         )
     
-    def test_actualizar_cantidad_a_cero(self):
+    def test_actualizar_cantidad_elimina_detalle_si_es_cero(self):
         
         # Arrange
         self.crear_detalle(cantidad=3)
@@ -160,7 +166,7 @@ class CarritoTestCase(BaseTestCase):
             ZERO
         )
     
-    def test_actualizar_cantidad_negativa(self):
+    def test_actualizar_cantidad_lanza_error_si_es_negativa(self):
         
         # Arrange
         self.crear_detalle(cantidad=2)
@@ -180,11 +186,35 @@ class CarritoTestCase(BaseTestCase):
             2
         )
     
-    def test_actualizar_cantidad_producto_inexistente():
-        pass
+    def test_actualizar_cantidad_lanza_error_si_producto_no_existe(self):
+        
+        # Act + Assert
+        with self.assertRaises(ProductoNoExisteEnPedidoError):
+            actualizar_cantidad(
+                self.pedido,
+                self.producto,
+                nueva_cantidad=4
+            )
     
-    def test_actualizar_cantidad_supera_stock(self):
-        pass
+    def test_actualizar_cantidad_lanza_error_si_supera_stock(self):
+        
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        # Act + Assert
+        with self.assertRaises(StockInsuficienteError):
+            actualizar_cantidad(
+                self.pedido,
+                self.producto,
+                nueva_cantidad=25
+            )
+            
+        detalle = self.pedido.detalles_pedido.get()
+        
+        self.assertEqual(
+            detalle.cantidad,
+            2
+        )
     
     #-----------------------------------------
     # eliminar_producto()
