@@ -6,7 +6,7 @@ from usuarios.models import Usuario
 from clientes.models import Cliente
 from catalogo.models import Categoria, Marca, Producto
 from pedidos.models import Pedido, EstadoPedido, DetallePedido
-from pedidos.services import ZERO
+from pedidos.services import ZERO, calcular_subtotal, calcular_total
 
 class BaseTestCase(TestCase):
     def setUp(self):
@@ -67,5 +67,13 @@ class BaseTestCase(TestCase):
             producto=producto,
             precio_unitario=precio_unitario,
             cantidad=cantidad,
+        )
+        
+    def calcular_total_pedido(self):
+        subtotal = calcular_subtotal(self.pedido)
+        
+        return calcular_total(
+            self.pedido,
+            subtotal
         )
         

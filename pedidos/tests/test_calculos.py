@@ -1,14 +1,20 @@
 from decimal import Decimal
 
 from pedidos.models import DetallePedido
-from pedidos.services import calcular_subtotal, ZERO
+from pedidos.services import (
+    calcular_subtotal,
+    calcular_total,
+    actualizar_totales,
+    ZERO,
+) 
 from catalogo.models import Producto
 
 from .base import BaseTestCase
 
 
 class CalculosTestCase(BaseTestCase):
-
+    
+    # calcular_subtotal()
     def test_calcular_subtotal(self):
 
         # Arrange
@@ -84,4 +90,28 @@ class CalculosTestCase(BaseTestCase):
             subtotal,
             ZERO
         )
+        
+    # calcular_total()
+    def test_calcular_total_sin_envio_ni_descuento(self):
+        
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        # Act
+        total = self.calcular_total_pedido()
+        
+        # Assert
+        self.assertEqual(
+            total,
+            Decimal("40_000.00")
+        )
+    
+    def test_calcular_total_con_envio(self):
+        pass
+    
+    def test_calcular_total_con_descuento(self):
+        pass
+    
+    def test_calcular_total_con_envio_y_descuento(self):
+        pass
         
