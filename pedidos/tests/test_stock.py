@@ -29,6 +29,7 @@ class StockTestCase(BaseTestCase):
             str(error.exception),
             "No hay stock suficiente."
         )
+        
     #-----------------------------------------
     # descontar_stock()
     #-----------------------------------------
