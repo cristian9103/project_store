@@ -50,7 +50,34 @@ class CarritoTestCase(BaseTestCase):
         )
     
     def test_agregar_producto_existente(self):
-        pass
+        
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        # Act
+        detalle = agregar_producto(
+            self.pedido,
+            self.producto,
+            cantidad=3
+        )
+        
+        # Assert
+        self.assertEqual(
+            self.pedido.detalles_pedido.count(),
+            1
+        )
+        
+        self.assertEqual(
+            detalle.cantidad,
+            5
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.subtotal,
+            Decimal("100_000.00")
+        )
     
     def test_agregar_producto_sin_stock(self):
         pass
