@@ -107,7 +107,20 @@ class CalculosTestCase(BaseTestCase):
         )
     
     def test_calcular_total_con_envio(self):
-        pass
+        
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        self.pedido.costo_envio = Decimal("8_000.00")
+        
+        # Act
+        total = self.calcular_total_pedido()
+        
+        # Assert
+        self.assertEqual(
+            total,
+            Decimal("48_000.00")
+        )
     
     def test_calcular_total_con_descuento(self):
         pass
