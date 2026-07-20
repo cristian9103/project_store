@@ -1,6 +1,11 @@
 from .base import BaseTestCase
-from pedidos.services import crear_pedido
+from pedidos.services import crear_pedido, confirmar_pedido
 from pedidos.models import Pedido, EstadoPedido
+from pedidos.exceptions import (
+    StockInsuficienteError,
+    EstadoPedidoInvalidoError,
+    PedidoVacioError
+)
 
 class PedidosTestCase(BaseTestCase):
     
@@ -51,10 +56,26 @@ class PedidosTestCase(BaseTestCase):
     # confirmar_pedido()
     #-----------------------------------------
     def test_confirmar_pedido_lanza_error_si_esta_vacio(self):
-        pass
+        
+        # Act + Assert
+        with self.assertRaises(PedidoVacioError):
+            confirmar_pedido(self.pedido)
     
     def test_confirmar_pedido_lanza_error_si_no_hay_stock(self):
-        pass
+        
+        # Arrange
+        self.crear_detalle(cantidad=25)
+        
+        # Act + Assert
+        with self.assertRaises(StockInsuficienteError):
+            confirmar_pedido(self.pedido)
+            
+        self.producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.producto.stock,
+            20
+        )
     
     def test_confirmar_pedido_lanza_error_si_estado_no_es_pendiente(self):
         pass
