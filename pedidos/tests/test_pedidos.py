@@ -1,6 +1,6 @@
 from .base import BaseTestCase
 from decimal import Decimal
-from pedidos.services import crear_pedido, confirmar_pedido, ZERO
+from pedidos.services import crear_pedido, confirmar_pedido
 from pedidos.models import Pedido, EstadoPedido
 from pedidos.exceptions import (
     StockInsuficienteError,
@@ -108,18 +108,41 @@ class PedidosTestCase(BaseTestCase):
         pedido = confirmar_pedido(self.pedido)
         
         # Assert
+        pedido.refresh_from_db()
+        
         self.assertEqual(
             pedido.estado,
             EstadoPedido.PREPARACION
         )
+    
+    def test_confirmar_pedido_descuenta_stock(self):
         
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        # Act
+        confirmar_pedido(self.pedido)
+        
+        # Assert
         self.producto.refresh_from_db()
         
         self.assertEqual(
             self.producto.stock,
             18
         )
+    
+    def test_confirmar_pedido_actualiza_totales(self):
         
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        self.pedido.costo_envio = Decimal("8_000.00")
+        self.pedido.save(update_fields=["costo_envio"])
+        
+        # Act
+        pedido = confirmar_pedido(self.pedido)
+        
+        # Assert
         pedido.refresh_from_db()
         
         self.assertEqual(
@@ -129,11 +152,5 @@ class PedidosTestCase(BaseTestCase):
         
         self.assertEqual(
             pedido.total,
-            Decimal("40_000.00")
+            Decimal("48_000.00")
         )
-    
-    def test_confirmar_pedido_descuenta_stock(self):
-        pass
-    
-    def test_confirmar_pedido_actualiza_totales(self):
-        pass
