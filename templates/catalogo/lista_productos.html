@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<header>
+
+</header>
+
+<main>
+
+    <section>
+
+        {% for producto in productos %}
+
+            <article>
+
+            </article>
+
+        {% empty %}
+
+            <p>No hay productos disponibles.</p>
+
+        {%  endfor %}
+
+    </section>
+
+</main>
+
+{% endblock %}
