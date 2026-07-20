@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from core.models.base_model import BaseModel
+from catalogo.managers import ProductoQuerySet
 
 class Producto(BaseModel):
     
@@ -41,6 +42,8 @@ class Producto(BaseModel):
         help_text="Cantidad disponible para la venta."
     )
     activo = models.BooleanField(default=True)
+    
+    objects = ProductoQuerySet.as_manager()
     
     class Meta:
         verbose_name = "Producto"
