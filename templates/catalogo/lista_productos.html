@@ -1,29 +1,37 @@
 {% extends "base.html" %}
 
+{% block title %}
+Productos
+{% endblock %}
+
 {% block content %}
 
-<header>
+<section>
 
-</header>
+    <h1>Productos</h1>
 
-<main>
+    {% for producto in productos %}
 
-    <section>
+        <article>
 
-        {% for producto in productos %}
+            <img>
 
-            <article>
+            <h2>{{ producto.nombre }}</h2>
 
-            </article>
+            <p>{{ producto.marca }}</p>
 
-        {% empty %}
+            <p>{{ producto.precio_venta }}</p>
 
-            <p>No hay productos disponibles.</p>
+            <a href="#">Ver producto</a>
 
-        {%  endfor %}
+        </article>
 
-    </section>
+    {% empty %}
 
-</main>
+        <p>No hay productos disponibles.</p>
+
+    {% endfor %}
+
+</section>
 
 {% endblock %}
