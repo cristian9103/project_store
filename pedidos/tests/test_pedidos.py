@@ -1,5 +1,6 @@
 from .base import BaseTestCase
-from pedidos.services import crear_pedido, confirmar_pedido
+from decimal import Decimal
+from pedidos.services import crear_pedido, confirmar_pedido, ZERO
 from pedidos.models import Pedido, EstadoPedido
 from pedidos.exceptions import (
     StockInsuficienteError,
@@ -78,10 +79,58 @@ class PedidosTestCase(BaseTestCase):
         )
     
     def test_confirmar_pedido_lanza_error_si_estado_no_es_pendiente(self):
-        pass
+        
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        self.pedido.estado = EstadoPedido.CANCELADO
+        
+        self.pedido.save(update_fields=["estado"])
+        
+        # Act
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            confirmar_pedido(self.pedido)
+            
+        # Assert
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO
+        )
     
     def test_confirmar_pedido_actualiza_estado(self):
-        pass
+        
+        # Arrange
+        self.crear_detalle(cantidad=2)
+        
+        # Act
+        pedido = confirmar_pedido(self.pedido)
+        
+        # Assert
+        self.assertEqual(
+            pedido.estado,
+            EstadoPedido.PREPARACION
+        )
+        
+        self.producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.producto.stock,
+            18
+        )
+        
+        pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pedido.subtotal,
+            Decimal("40_000.00")
+        )
+        
+        self.assertEqual(
+            pedido.total,
+            Decimal("40_000.00")
+        )
     
     def test_confirmar_pedido_descuenta_stock(self):
         pass
