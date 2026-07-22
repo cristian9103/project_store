@@ -1,0 +1,77 @@
+{% if is_paginated %}
+
+<nav aria-label="Paginación">
+
+    <ul>
+
+        {% if page_obj.has_previous %}
+
+            {% if query_params %}
+                <li>
+                    <a href="?page={{ page_obj.previous_page_number }}&{{ query_params }}">
+                        Anterior
+                    </a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="?page={{ page_obj.previous_page_number }}">
+                        Anterior
+                    </a>
+                </li>
+            {% endif %}
+
+        {% endif %}
+
+        {% for numero in paginator.page_range %}
+
+            {% if numero == page_obj.number %}
+
+                <li>
+                    <span aria-current="page">
+                        {{ numero }}
+                    </span>
+                </li>
+
+            {% else %}
+
+                {% if query_params %}
+                    <li>
+                        <a href="?page={{ numero }}&{{ query_params }}">
+                            {{ numero }}
+                        </a>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="?page={{ numero }}">
+                            {{ numero }}
+                        </a>
+                    </li>
+                {% endif %}
+
+            {% endif %}
+
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+
+            {% if query_params %}
+                <li>
+                    <a href="?page={{ page_obj.next_page_number }}&{{ query_params }}">
+                        Siguiente
+                    </a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="?page={{ page_obj.next_page_number }}">
+                        Siguiente
+                    </a>
+                </li>
+            {% endif %}
+
+        {% endif %}
+
+    </ul>
+
+</nav>
+
+{% endif %}

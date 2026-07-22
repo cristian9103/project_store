@@ -31,4 +31,9 @@ class ProductoListView(ListView):
         
         context["form"] = self.form
         
+        query_params = self.request.GET.copy()
+        query_params.pop("page", None)
+        
+        context["query_params"] = query_params.urlencode()
+        
         return context
