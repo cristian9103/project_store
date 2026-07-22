@@ -15,12 +15,12 @@ def buscar_productos(
         
     if categoria:
         queryset = queryset.filter(
-            categoria_id=categoria
+            categoria=categoria
         )
         
     if marca:
         queryset = queryset.filter(
-            marca_id=marca
+            marca=marca
         )
         
     return (
