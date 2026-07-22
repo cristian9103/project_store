@@ -15,6 +15,12 @@ class ProductoBusquedaForm(forms.Form):
     )
     
     categoria = forms.ModelChoiceField(
+        queryset=Categoria.objects.all(),
+        required=False,
+        empty_label="Todas las categorías",
+    )
+    
+    marca = forms.ModelChoiceField(
         queryset=Marca.objects.all(),
         required=False,
         empty_label="Todas las marcas",
