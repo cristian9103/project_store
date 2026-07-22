@@ -1,36 +1,26 @@
 {% extends "base.html" %}
 
 {% block title %}
-Productos
+Catálogo
 {% endblock %}
 
 {% block content %}
 
-<section>
+<h1>Catálogo</h1>
 
-    <h1>Productos</h1>
+{% include "catalogo/partials/formulario_busqueda.html" %}
+
+<section class="productos">
 
     {% for producto in productos %}
 
-        <article>
-
-            <img>
-
-            <h2>{{ producto.nombre }}</h2>
-
-            <p>{{ producto.marca }}</p>
-
-            <p>{{ producto.precio_venta }}</p>
-
-            <a href="#">Ver producto</a>
-
-        </article>
+        {% include "catalogo/partials/tarjeta_producto.html" %}
 
     {% empty %}
 
         <p>No hay productos disponibles.</p>
 
-    {% endfor %}
+    {% endfor%}
 
 </section>
 

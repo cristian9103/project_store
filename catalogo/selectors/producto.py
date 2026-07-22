@@ -26,6 +26,7 @@ def buscar_productos(
     return (
         queryset
         .select_related("categoria", "marca")
+        .prefetch_related("imagenes")
         .order_by("nombre")
     )
     

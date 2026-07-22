@@ -12,6 +12,7 @@ class ImagenProducto(BaseModel):
     imagen = models.ImageField(upload_to="productos/")
     orden = models.PositiveSmallIntegerField(default=1)
     texto_alternativo = models.CharField(max_length=150, blank=True)
+    es_principal = models.BooleanField(default=False)
     
     class Meta:
         verbose_name = "Imagen del producto"
