@@ -1,0 +1,31 @@
+<form method="get">
+
+    <div>
+        <label for="{{ form.buscar.id_for_label }}">
+            {{ form.buscar.label }}
+        </label>
+
+        {{ form.buscar}}
+    </div>
+
+    <div>
+        <label for="{{ form.categoria.id_for_label }}">
+            {{ form.categoria.label }}
+        </label>
+
+        {{ form.categoria }}
+    </div>
+
+    <div>
+        <label for="{{ form.marca.id_for_label }}">
+            {{ form.marca.label }}
+        </label>
+
+        {{ form.marca }}
+    </div>
+
+    <button type="submit">
+        Buscar
+    </button>
+
+</form>
