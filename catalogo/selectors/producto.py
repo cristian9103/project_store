@@ -10,7 +10,7 @@ def buscar_productos(
     
     if texto:
         queryset = queryset.filter(
-            nombre__incontains=texto.strip()
+            nombre__icontains=texto.strip()
         )
         
     if categoria:

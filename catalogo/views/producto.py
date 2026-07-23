@@ -1,4 +1,4 @@
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 
 from catalogo.models import Producto
 from catalogo.selectors import buscar_productos
@@ -37,3 +37,22 @@ class ProductoListView(ListView):
         context["query_params"] = query_params.urlencode()
         
         return context
+    
+class ProductoDetailView(DetailView):
+    model = Producto
+    
+    template_name = "catalogo/detalle_producto.html"
+    
+    context_object_name = "producto"
+    
+    def get_queryset(self):
+        return (
+            Producto.objects.disponibles()
+            .select_related(
+                "categoria",
+                "marca",
+            )
+            .prefech_related(
+                "imagenes",
+            )
+        )
