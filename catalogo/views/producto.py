@@ -1,7 +1,7 @@
 from django.views.generic import ListView, DetailView
 
 from catalogo.models import Producto
-from catalogo.selectors import buscar_productos
+from catalogo.selectors import buscar_productos, obtener_producto
 from catalogo.forms import ProductoBusquedaForm
 
 class ProductoListView(ListView):
@@ -45,14 +45,7 @@ class ProductoDetailView(DetailView):
     
     context_object_name = "producto"
     
-    def get_queryset(self):
-        return (
-            Producto.objects.disponibles()
-            .select_related(
-                "categoria",
-                "marca",
-            )
-            .prefech_related(
-                "imagenes",
-            )
+    def get_object(self):
+        return obtener_producto(
+            self.kwargs["pk"]
         )

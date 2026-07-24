@@ -64,12 +64,9 @@ class Producto(BaseModel):
     
     @property
     def imagen_principal(self):
-        imagen = self.imagenes.filter(
+        principal = self.imagenes.filter(
             es_principal=True
         ).first()
         
-        if imagen:
-            return imagen
-        
-        return self.imagenes.first()
+        return principal or self.imagenes.first()
     
