@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ producto.nombre }}
+{% endblock %}
+
+{% block content %}
+
+<article>
+    <figure>
+        {% if producto.imagen_principal %}
+
+            <img 
+                src="{{ producto.imagen_principal.imagen.url }}" 
+                alt="{{ producto.imagen_principal.texto_alternativo }}"
+            >
+
+        {% endif %}
+    </figure>
+
+    <aside>
+
+        {% for imagen in producto.imagenes.all %}
+            <img 
+                src="{{ imagen.imagen.url }}" 
+                alt="{{ imagen.texto_alternativo }}"
+            >
+        {% endfor %}
+
+    </aside>
+
+    <section>
+        <h1>
+            {{ producto.nombre }}
+        </h1>
+
+        <p>
+            Marca: {{ producto.marca.nombre }}
+        </p>
+
+        <p>
+            Categoría: {{ producto.categoria.nombre }}
+        </p>
+
+        <p>
+            Precio: ${{ producto.precio_venta }}
+        </p>
+
+        <p>
+            Stock disponible: {{ producto.stock }}
+        </p>
+
+        <h2>
+            Descripción
+        </h2>
+
+        <p>
+            {{ producto.descripcion }}
+        </p>
+
+        <label for="cantidad">
+            Cantidad
+        </label>
+
+        <input 
+            type="number" 
+            name="cantidad" 
+            id="cantidad"
+            value="1"
+            min="1"
+            max="{{ producto.stock }}"
+        >
+
+        <button type="submit">
+            Agregar al carrito
+        </button>
+    </section>
+</article>
+
+{% endblock %}

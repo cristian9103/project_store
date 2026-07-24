@@ -61,3 +61,15 @@ class Producto(BaseModel):
     @property
     def utilidad(self):
         return self.precio_venta - self.precio_compra
+    
+    @property
+    def imagen_principal(self):
+        imagen = self.imagenes.filter(
+            es_principal=True
+        ).first()
+        
+        if imagen:
+            return imagen
+        
+        return self.imagenes.first()
+    
