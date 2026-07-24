@@ -7,6 +7,11 @@
                 src="{{ producto.imagen_principal.imagen.url }}" 
                 alt="{{ producto.imagen_principal.texto_alternativo }}"
             >
+
+        {% else %}
+
+            <p>Imagen no disponible.</p>
+
         {% endif %}
         
     </figure>

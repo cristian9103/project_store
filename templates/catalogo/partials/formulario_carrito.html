@@ -1,0 +1,17 @@
+<form id="agregar-carrito" method="post">
+    {% csrf_token %}
+
+    {{ form.non_field_errors }}
+
+    <div>
+        {{ form.cantidad.label_tag }}
+
+        {{ form.cantidad }}
+
+        {{ form.cantidad.errors }}
+    </div>
+
+    <button type="submit">
+        Agregar al carrito
+    </button>
+</form>

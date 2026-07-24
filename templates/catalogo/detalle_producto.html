@@ -7,76 +7,11 @@
 {% block content %}
 
 <article>
-    <figure>
-        {% if producto.imagen_principal %}
+    
+    {% include "catalogo/partials/galeria_producto.html" %}
 
-            <img 
-                src="{{ producto.imagen_principal.imagen.url }}" 
-                alt="{{ producto.imagen_principal.texto_alternativo }}"
-            >
-        
-        {% else %}
-
-            <p>Imagen no disponible.</p>
-
-        {% endif %}
-    </figure>
-
-    <aside>
-
-        {% for imagen in producto.imagenes.all %}
-            <img 
-                src="{{ imagen.imagen.url }}"
-                loading="lazy"
-                alt="{{ imagen.texto_alternativo }}"
-            >
-        {% endfor %}
-
-    </aside>
-
-    <section>
-        <h1>
-            {{ producto.nombre }}
-        </h1>
-
-        <p>
-            Marca: {{ producto.marca.nombre }}
-        </p>
-
-        <p>
-            Categoría: {{ producto.categoria.nombre }}
-        </p>
-
-        <p>
-            Precio: ${{ producto.precio_venta }}
-        </p>
-
-        <p>
-            Stock disponible: {{ producto.stock }}
-        </p>
-
-        {% if producto.descripcion %}
-            <h2>
-                Descripción
-            </h2>
-
-            <p>
-                {{ producto.descripcion }}
-            </p>
-        {% endif %}
-
-        <form id="agregar-carrito" method="post">
-            {% csrf_token %}
-
-            {{ form.cantidad.label_tag }}
-
-            {{ form.cantidad }}
-
-            <button type="submit">
-                Agregar al carrito
-            </button>
-        </form>
-    </section>
+    {% include "catalogo/partials/informacion_productos.html" %}
+    
 </article>
 
 {% endblock %}

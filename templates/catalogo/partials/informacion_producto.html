@@ -1,0 +1,34 @@
+<section>
+    <h1>
+        {{ producto.nombre }}
+    </h1>
+
+    <p>
+        Marca: {{ producto.marca.nombre }}
+    </p>
+
+    <p>
+        Categoría: {{ producto.categoria.nombre }}
+    </p>
+
+    <p>
+        Precio: ${{ producto.precio_venta }}
+    </p>
+
+    <p>
+        Stock disponible: {{ producto.stock }}
+    </p>
+
+    {% if producto.descripcion %}
+        <h2>
+            Descripción
+        </h2>
+
+        <p>
+            {{ producto.descripcion }}
+        </p>
+    {% endif %}
+
+    {% include "catalogo/partials/formulario_carrito.html" %}
+
+</section>

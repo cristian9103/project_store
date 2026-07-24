@@ -1,0 +1,26 @@
+<figure>
+    {% if producto.imagen_principal %}
+
+        <img 
+            src="{{ producto.imagen_principal.imagen.url }}" 
+            alt="{{ producto.imagen_principal.texto_alternativo }}"
+        >
+    
+    {% else %}
+
+        <p>Imagen no disponible.</p>
+
+    {% endif %}
+</figure>
+
+<aside>
+
+    {% for imagen in producto.imagenes.all %}
+        <img 
+            src="{{ imagen.imagen.url }}"
+            loading="lazy"
+            alt="{{ imagen.texto_alternativo }}"
+        >
+    {% endfor %}
+
+</aside>
