@@ -14,6 +14,10 @@
                 src="{{ producto.imagen_principal.imagen.url }}" 
                 alt="{{ producto.imagen_principal.texto_alternativo }}"
             >
+        
+        {% else %}
+
+            <p>Imagen no disponible.</p>
 
         {% endif %}
     </figure>
@@ -22,7 +26,8 @@
 
         {% for imagen in producto.imagenes.all %}
             <img 
-                src="{{ imagen.imagen.url }}" 
+                src="{{ imagen.imagen.url }}"
+                loading="lazy"
                 alt="{{ imagen.texto_alternativo }}"
             >
         {% endfor %}
@@ -50,15 +55,17 @@
             Stock disponible: {{ producto.stock }}
         </p>
 
-        <h2>
-            Descripción
-        </h2>
+        {% if producto.descripcion %}
+            <h2>
+                Descripción
+            </h2>
 
-        <p>
-            {{ producto.descripcion }}
-        </p>
+            <p>
+                {{ producto.descripcion }}
+            </p>
+        {% endif %}
 
-        <form method="post">
+        <form id="agregar-carrito" method="post">
             {% csrf_token %}
 
             {{ form.cantidad.label_tag }}
