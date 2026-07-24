@@ -5,6 +5,8 @@ from .views import (
     ProductoDetailView,
 )
 
+app_name = "catalogo"
+
 urlpatterns = [
     path("", ProductoListView.as_view(), name="lista_productos"),
     path("<int:pk>/", ProductoDetailView.as_view(), name="detalle_producto"),

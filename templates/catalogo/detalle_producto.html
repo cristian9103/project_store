@@ -58,22 +58,17 @@
             {{ producto.descripcion }}
         </p>
 
-        <label for="cantidad">
-            Cantidad
-        </label>
+        <form method="post">
+            {% csrf_token %}
 
-        <input 
-            type="number" 
-            name="cantidad" 
-            id="cantidad"
-            value="1"
-            min="1"
-            max="{{ producto.stock }}"
-        >
+            {{ form.cantidad.label_tag }}
 
-        <button type="submit">
-            Agregar al carrito
-        </button>
+            {{ form.cantidad }}
+
+            <button type="submit">
+                Agregar al carrito
+            </button>
+        </form>
     </section>
 </article>
 
