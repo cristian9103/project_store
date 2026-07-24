@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from catalogo.models import Producto
 
 def buscar_productos(
@@ -28,5 +30,22 @@ def buscar_productos(
         .select_related("categoria", "marca")
         .prefetch_related("imagenes")
         .order_by("nombre")
+    )
+    
+def obtener_producto(pk):
+    queryset = (
+        Producto.objects.disponibles()
+        .select_related(
+            "categoria",
+            "marca",
+        )
+        .prefetch_related(
+            "imagenes",
+        )
+    )
+    
+    return get_object_or_404(
+        queryset,
+        pk=pk
     )
     
