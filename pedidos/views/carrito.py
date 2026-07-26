@@ -68,6 +68,6 @@ class AgregarAlCarritoView(LoginRequiredMixin, View):
                 "catalogo:detalle_producto",
                 pk=producto.pk,
             )
-            
+      
 class CarritoDetailView(LoginRequiredMixin, TemplateView):
     template_name = "pedidos/carrito.html"
