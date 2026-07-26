@@ -29,11 +29,12 @@ class ImagenProductoAdmin(admin.ModelAdmin):
     list_display = (
         "producto",
         "imagen",
+        "es_principal"
     )
     
     search_fields = ("producto__nombre",)
     
-    list_filter = ("producto",)
+    list_filter = ("es_principal",)
     
     ordering = ("producto__nombre",)
     
@@ -88,11 +89,6 @@ class ProductoAdmin(admin.ModelAdmin):
     list_filter = (
         "categoria",
         "marca",
-        "sku",
-        "nombre",
-        "precio_compra",
-        "fecha_creacion",
-        "fecha_actualizacion",
     )
     
     ordering = ("nombre",)

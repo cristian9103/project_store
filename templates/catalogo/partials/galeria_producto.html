@@ -4,6 +4,7 @@
         <img 
             src="{{ producto.imagen_principal.imagen.url }}" 
             alt="{{ producto.imagen_principal.texto_alternativo }}"
+            width="500"
         >
     
     {% else %}
@@ -16,11 +17,14 @@
 <aside>
 
     {% for imagen in producto.imagenes.all %}
-        <img 
-            src="{{ imagen.imagen.url }}"
-            loading="lazy"
-            alt="{{ imagen.texto_alternativo }}"
-        >
+        {% if not imagen.es_principal %}
+            <img 
+                src="{{ imagen.imagen.url }}"
+                loading="lazy"
+                alt="{{ imagen.texto_alternativo }}"
+                width="500"
+            >
+        {% endif %}
     {% endfor %}
 
 </aside>
