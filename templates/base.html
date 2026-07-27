@@ -35,6 +35,16 @@
 
     <main>
 
+        {% if messages %}
+            <section>
+                {% for message in messages %}
+                    <p class="{{ message.tags}}">
+                        {{ message }}
+                    </p>
+                {% endfor %}
+            </section>
+        {% endif %}
+
         {% block content %}
 
         {% endblock %}
