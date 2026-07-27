@@ -1,13 +1,66 @@
 {% extends "base.html" %}
 
 {% block title %}
-Carrito
+Mi carrito
 {% endblock %}
 
 {% block content %}
 
 <h1>Mi carrito</h1>
 
-<p>Próximamente mostraremos los productos.</p>
+{% if pedido %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for detalle in pedido.detalles_pedido.all %}
+                <tr>
+                    <td>{{ detalle.producto.nombre }}</td>
+                    <td>${{ detalle.precio_unitario }}</td>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td>${{ detalle.subtotal }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <section>
+        <h2>Resumen</h2>
+
+        <p>Subtotal: ${{ pedido.subtotal }}</p>
+        <p>Envío: ${{ pedido.costo_envio }}</p>
+        <p>Descuento: ${{ pedido.descuento }}</p>
+        <p>
+            <strong>Total: ${{ pedido.total }}</strong>
+        </p>
+    </section>
+
+    <div>
+        <a href="#">
+            Seguir comprando
+        </a>
+
+        <a href="#">
+            Vaciar carrito
+        </a>
+
+        <a href="#">
+            Confirmar pedido
+        </a>
+    </div>
+
+{% else %}
+
+    <p>No tienes productos en el carrito.</p>
+
+{% endif %}
 
 {% endblock %}
