@@ -61,9 +61,16 @@ Mi carrito
             Seguir comprando
         </a>
 
-        <a href="#">
-            Vaciar carrito
-        </a>
+        <form 
+            action="" 
+            method="post"
+        >
+            {% csrf_token %}
+
+            <button type="submit">
+                Vaciar carrito
+            </button>
+        </form>
 
         <a href="#">
             Confirmar pedido

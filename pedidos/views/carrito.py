@@ -8,7 +8,12 @@ from catalogo.forms import AgregarAlCarritoForm
 from catalogo.models import Producto
 from clientes.selectors import obtener_cliente
 
-from pedidos.services import crear_pedido, agregar_producto, actualizar_cantidad
+from pedidos.services import (
+    crear_pedido, 
+    agregar_producto, 
+    actualizar_cantidad,
+    vaciar_carrito,
+)
 from pedidos.forms import ActualizarCantidadForm
 from pedidos.selectors import obtener_pedido_pendiente
 from pedidos.models import DetallePedido
@@ -129,3 +134,19 @@ class ActualizarCantidadView(LoginRequiredMixin, View):
         return redirect(
             "pedidos:carrito"
         )
+        
+class VaciarCarritoView(LoginRequiredMixin, View):
+    
+    def post(self, request):
+        cliente = obtener_cliente(request.user)
+        pedido = obtener_pedido_pendiente(cliente)
+        
+        if pedido:
+            vaciar_carrito(pedido)
+            
+            messages.success(
+                request,
+                "El carrito se vació correctamente."
+            )
+            
+        return redirect("pedidos:carrito")
