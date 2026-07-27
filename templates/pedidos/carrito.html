@@ -25,7 +25,20 @@ Mi carrito
                 <tr>
                     <td>{{ detalle.producto.nombre }}</td>
                     <td>${{ detalle.precio_unitario }}</td>
-                    <td>{{ detalle.cantidad }}</td>
+                    <td>
+                        <form 
+                            method="post"
+                            action="{% url 'pedidos:actualizar_cantidad' detalle.pk %}"
+                        >
+                            {% csrf_token %}
+
+                            <input type="number" name="cantidad" value="{{ detalle.cantidad }}" min="0">
+
+                            <button type="submit">
+                                Actualizar
+                            </button>
+                        </form>
+                    </td>
                     <td>${{ detalle.subtotal }}</td>
                 </tr>
             {% endfor %}
