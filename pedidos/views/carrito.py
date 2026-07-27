@@ -9,6 +9,7 @@ from catalogo.models import Producto
 from clientes.selectors import obtener_cliente
 
 from pedidos.services import crear_pedido, agregar_producto
+from pedidos.selectors import obtener_pedido_pendiente
 from pedidos.exceptions import (
     StockInsuficienteError,
     CantidadInvalidaError,
@@ -70,4 +71,16 @@ class AgregarAlCarritoView(LoginRequiredMixin, View):
             )
       
 class CarritoDetailView(LoginRequiredMixin, TemplateView):
+    
     template_name = "pedidos/carrito.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        cliente = obtener_cliente(self.request.user)
+        
+        pedido = obtener_pedido_pendiente(cliente)
+        
+        context["pedido"] = pedido
+        
+        return context
