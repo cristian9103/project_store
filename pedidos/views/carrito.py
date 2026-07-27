@@ -8,8 +8,10 @@ from catalogo.forms import AgregarAlCarritoForm
 from catalogo.models import Producto
 from clientes.selectors import obtener_cliente
 
-from pedidos.services import crear_pedido, agregar_producto
+from pedidos.services import crear_pedido, agregar_producto, actualizar_cantidad
+from pedidos.forms import ActualizarCantidadForm
 from pedidos.selectors import obtener_pedido_pendiente
+from pedidos.models import DetallePedido
 from pedidos.exceptions import (
     StockInsuficienteError,
     CantidadInvalidaError,
@@ -84,3 +86,46 @@ class CarritoDetailView(LoginRequiredMixin, TemplateView):
         context["pedido"] = pedido
         
         return context
+    
+class ActualizarCantidadView(LoginRequiredMixin, View):
+    
+    def post(self, request, detalle_id):
+        
+        detalle = get_object_or_404(
+            DetallePedido.objects.select_related(
+                "pedido",
+                "producto",
+            ),
+            pk=detalle_id,
+        )
+        
+        form = ActualizarCantidadForm(request.POST)
+        
+        if not form.is_valid():
+            return redirect("pedidos:carrito")
+        
+        try:
+            actualizar_cantidad(
+                pedido=detalle.pedido,
+                producto=detalle.producto,
+                nueva_cantidad=form.cleaned_data["cantidad"],
+            )
+            
+            messages.success(
+                request,
+                "Cantidad actualizada."
+            )
+        except (
+            StockInsuficienteError,
+            CantidadInvalidaError,
+            ProductoNoExisteEnPedidoError,
+        ) as error:
+            
+            messages.error(
+                request,
+                str(error),
+            )
+            
+        return redirect(
+            "pedidos:carrito"
+        )
