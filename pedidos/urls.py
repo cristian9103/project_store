@@ -5,6 +5,7 @@ from pedidos.views import (
     CarritoDetailView,
     ActualizarCantidadView,
     VaciarCarritoView,
+    ConfirmarPedidoView,
 )
 
 app_name = "pedidos"
@@ -14,4 +15,5 @@ urlpatterns = [
     path("carrito/agregar/<int:pk>/", AgregarAlCarritoView.as_view(), name="agregar_producto"),
     path("carrito/actualizar/<int:detalle_id>/", ActualizarCantidadView.as_view(), name="actualizar_cantidad"),
     path("carrito/vaciar/", VaciarCarritoView.as_view(), name="vaciar_carrito"),
+    path("confirmar/", ConfirmarPedidoView.as_view(), name="confirmar_pedido"),
 ]
