@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Iniciar sesión
+{% endblock %}
+
+{% block content %}
+
+<section>
+
+    <header>
+        <h1>Iniciar sesión</h1>
+        <p>Ingresa tu correo electrónico y contraseña para acceder a tu cuenta.</p>
+    </header>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div>
+            {{ form.username.label_tag }}
+            {{ form.username }}
+            {{ form.username.errors}}
+        </div>
+
+        <div>
+            {{ form.password.label_tag }}
+            {{ form.password }}
+            {{ form.password.errors }}
+        </div>
+
+        <button type="submit">
+            Iniciar sesión
+        </button>
+    </form>
+
+</section>
+
+{% endblock %}
