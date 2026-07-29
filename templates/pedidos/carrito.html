@@ -57,12 +57,12 @@ Mi carrito
     </section>
 
     <div>
-        <a href="#">
+        <a href="{% url 'catalogo:lista_productos' %}">
             Seguir comprando
         </a>
 
         <form 
-            action="" 
+            action="{% url 'pedidos:vaciar_carrito' %}" 
             method="post"
         >
             {% csrf_token %}
