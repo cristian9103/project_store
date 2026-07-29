@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}
+Crear cuenta
+{% endblock %}
+
+{% block content %}
+
+<section>
+
+    <h1>Crear cuenta</h1>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        {{ form.non_field_errors }}
+
+        <div>
+            {{ form.first_name.label_tag }}
+            {{ form.first_name }}
+            {{ form.first_name.errors }}
+        </div>
+
+        <div>
+            {{ form.last_name.label_tag }}
+            {{ form.last_name }}
+            {{ form.last_name.errors }}
+        </div>
+
+        <div>
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {{ form.email.errors }}
+        </div>
+
+        <div>
+            {{ form.documento.label_tag }}
+            {{ form.documento }}
+            {{ form.documento.errors }}
+        </div>
+
+        <div>
+            {{ form.telefono.label_tag }}
+            {{ form.telefono }}
+            {{ form.telefono.errors }}
+        </div>
+
+        <div>
+            {{ form.password.label_tag }}
+            {{ form.password }}
+            {{ form.password.errors }}
+        </div>
+
+        <div>
+            {{ form.password_confirmacion.label_tag }}
+            {{ form.password_confirmacion }}
+            {{ form.password_confirmacion.errors }}
+        </div>
+
+        <button type="submit">
+            Crear cuenta
+        </button>
+
+    </form>
+
+    <p>
+        ¿Ya tienes una cuenta?
+        <a href="{% url 'usuarios:login' %}">
+            Iniciar sesión
+        </a>
+    </p>
+
+</section>
+
+{% endblock %}
