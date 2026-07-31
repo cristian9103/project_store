@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 
 from usuarios.services import registrar_usuario
 from .base import BaseTestCase
@@ -7,7 +8,7 @@ from clientes.models import Cliente
 
 Usuario = get_user_model()
 
-class RegistroUsuarioTest(BaseTestCase):
+class RegistrarUsuarioTest(BaseTestCase):
     
     def test_registrar_usuario_crea_usuario(self):
         
@@ -59,4 +60,22 @@ class RegistroUsuarioTest(BaseTestCase):
         
         self.assertTrue(
             usuario.check_password(datos["password"])
+        )
+        
+    def test_registrar_usuario_rollback_si_falla_cliente(self):
+        
+        datos = self.datos_registro()
+        
+        self.crear_cliente(
+            documento=datos["documento"]
+        )
+        
+        with self.assertRaises(IntegrityError):
+            
+            registrar_usuario(**datos)
+            
+        self.assertFalse(
+            Usuario.objects.filter(
+                email=datos["email"]
+            ).exists()
         )
