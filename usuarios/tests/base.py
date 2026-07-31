@@ -37,3 +37,17 @@ class BaseTestCase(TestCase):
         )
         
         return cliente
+    
+    def datos_registro(self, **overrides):
+        datos = {
+            "email": "nuevo@test.com",
+            "password": "TestPassword123!",
+            "first_name": "Nuevo",
+            "last_name": "Usuario",
+            "documento": "111111111",
+            "telefono": "3001111111",
+        }
+        
+        datos.update(overrides)
+        
+        return datos
