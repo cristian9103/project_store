@@ -8,7 +8,7 @@ class BaseTestCase(TestCase):
     def crear_usuario(
         self,
         email="usuario@test.com",
-        password="TestPassword123!",
+        password="X7!mQ2#vR9@kL4",
         first_name="Cristian",
         last_name="Ramirez",
     ):
@@ -41,7 +41,7 @@ class BaseTestCase(TestCase):
     def datos_registro(self, **overrides):
         datos = {
             "email": "nuevo@test.com",
-            "password": "TestPassword123!",
+            "password": "X7!mQ2#vR9@kL4",
             "first_name": "Nuevo",
             "last_name": "Usuario",
             "documento": "111111111",
