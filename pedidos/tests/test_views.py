@@ -223,3 +223,136 @@ class AgregarAlCarritoViewTest(BaseTestCase):
                 producto=self.producto
             ).exists()
         )
+
+class ActualizarCantidadViewTest(BaseTestCase):
+    
+    def test_actualizar_cantidad_correctamente(self):
+        
+        detalle = self.crear_detalle(
+            cantidad=1
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:actualizar_cantidad",
+                kwargs={
+                    "detalle_id": detalle.pk
+                }
+            ),
+            data={
+                "cantidad": 3
+            }
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito")
+        )
+        
+        detalle.refresh_from_db()
+        
+        self.assertEqual(
+            detalle.cantidad,
+            3
+        )
+        
+    def test_actualizar_cantidad_cero_elimina_detalle(self):
+        
+        detalle = self.crear_detalle(
+            cantidad=2
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:actualizar_cantidad",
+                kwargs={
+                    "detalle_id": detalle.pk
+                }
+            ),
+            data={
+                "cantidad": 0
+            }
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertFalse(
+            DetallePedido.objects.filter(
+                pk=detalle.pk
+            ).exists()
+        )
+        
+    def test_actualizar_cantidad_stock_insuficiente(self):
+        
+        detalle = self.crear_detalle(
+            cantidad=2
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        cantidad = self.producto.stock + 1
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:actualizar_cantidad",
+                kwargs={
+                    "detalle_id": detalle.pk
+                }
+            ),
+            data={
+                "cantidad": cantidad
+            }
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito")
+        )
+        
+        detalle.refresh_from_db()
+        
+        self.assertEqual(
+            detalle.cantidad,
+            2
+        )
+        
+    def test_actualizar_cantidad_requiere_autenticacion(self):
+        
+        detalle = self.crear_detalle(
+            cantidad=2
+        )
+        
+        detalle_url = reverse(
+            "pedidos:actualizar_cantidad",
+            kwargs={
+                "detalle_id": detalle.pk
+            }
+        )
+        
+        login_url = reverse("usuarios:login")
+        
+        response = self.client.post(
+            detalle_url,
+            data={
+                "cantidad": 3
+            }
+        )
+        
+        self.assertRedirects(
+            response,
+            f"{login_url}?next={detalle_url}"
+        )
+        
+        detalle.refresh_from_db()
+        
+        self.assertEqual(
+            detalle.cantidad,
+            2
+        )
