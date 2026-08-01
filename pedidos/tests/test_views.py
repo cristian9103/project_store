@@ -356,3 +356,63 @@ class ActualizarCantidadViewTest(BaseTestCase):
             detalle.cantidad,
             2
         )
+        
+class VaciarCarritoViewTest(BaseTestCase):
+    
+    def test_vaciar_carrito_correctamente(self):
+        
+        self.crear_detalle(
+            cantidad=2
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse("pedidos:vaciar_carrito")
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertFalse(
+            DetallePedido.objects.filter(
+                pedido=self.pedido
+            ).exists()
+        )
+        
+        self.assertTrue(
+            Pedido.objects.filter(
+                pk=self.pedido.pk
+            ).exists()
+        )
+        
+    def test_vaciar_carrito_requiere_autenticacion(self):
+        
+        detalle = self.crear_detalle(
+            cantidad=2
+        )
+        
+        carrito_url = reverse(
+            "pedidos:vaciar_carrito"
+        )
+        
+        login_url = reverse(
+            "usuarios:login"
+        )
+        
+        response = self.client.post(
+            carrito_url
+        )
+        
+        self.assertRedirects(
+            response,
+            f"{login_url}?next={carrito_url}"
+        )
+        
+        self.assertTrue(
+            DetallePedido.objects.filter(
+                pk=detalle.pk
+            ).exists()
+        )
