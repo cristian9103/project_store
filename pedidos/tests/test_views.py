@@ -4,7 +4,7 @@ from django.contrib.messages import get_messages
 from .base import BaseTestCase
 from clientes.models import Cliente
 from usuarios.models import Usuario
-from pedidos.models import Pedido, EstadoPedido
+from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.services import ZERO
 
 class CarritoDetailViewTest(BaseTestCase):
@@ -72,4 +72,154 @@ class CarritoDetailViewTest(BaseTestCase):
         self.assertRedirects(
             response,
             f"{login_url}?next={carrito_url}"
+        )
+        
+class AgregarAlCarritoViewTest(BaseTestCase):
+    
+    def test_agregar_producto_correctamente(self):
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:agregar_producto",
+                kwargs={
+                    "pk": self.producto.pk
+                }
+            ),
+            data={
+                "cantidad": 2
+            }
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito")
+        )
+        
+        detalle = DetallePedido.objects.get(
+            pedido=self.pedido,
+            producto=self.producto
+        )
+        
+        self.assertEqual(
+            detalle.cantidad,
+            2
+        )
+        
+        messages = list(
+            get_messages(response.wsgi_request)
+        )
+        
+        self.assertEqual(
+            len(messages),
+            1
+        )
+        
+        self.assertEqual(
+            str(messages[0]),
+            "Producto agregado al carrito."
+        )
+        
+    def test_agregar_producto_formulario_invalido(self):
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:agregar_producto",
+                kwargs={
+                    "pk": self.producto.pk
+                }
+            ),
+            data={
+                "cantidad": 0
+            }
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse(
+                "catalogo:detalle_producto",
+                kwargs={
+                    "pk": self.producto.pk
+                }
+            )
+        )
+        
+        self.assertFalse(
+            DetallePedido.objects.filter(
+                pedido=self.pedido,
+                producto=self.producto
+            ).exists()
+        )
+        
+    def test_agregar_producto_stock_insuficiente(self):
+        
+        self.client.force_login(self.usuario)
+        
+        cantidad = self.producto.stock + 1
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:agregar_producto",
+                kwargs={
+                    "pk": self.producto.pk
+                }
+            ),
+            data={
+                "cantidad": cantidad
+            }
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse(
+                "catalogo:detalle_producto",
+                kwargs={
+                    "pk": self.producto.pk
+                }
+            )
+        )
+        
+        self.assertFalse(
+            DetallePedido.objects.filter(
+                pedido=self.pedido,
+                producto=self.producto
+            ).exists()
+        )
+        
+    def test_agregar_producto_requiere_autenticacion(self):
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:agregar_producto",
+                kwargs={
+                    "pk": self.producto.pk
+                }
+            ),
+            data={
+                "cantidad": 2
+            }
+        )
+        
+        carrito_url = reverse(
+            "pedidos:agregar_producto",
+            kwargs={
+                "pk": self.producto.pk
+            }
+        )
+        
+        login_url = reverse("usuarios:login")
+        
+        self.assertRedirects(
+            response,
+            f"{login_url}?next={carrito_url}"
+        )
+        
+        self.assertFalse(
+            DetallePedido.objects.filter(
+                pedido=self.pedido,
+                producto=self.producto
+            ).exists()
         )
