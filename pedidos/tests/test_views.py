@@ -416,3 +416,165 @@ class VaciarCarritoViewTest(BaseTestCase):
                 pk=detalle.pk
             ).exists()
         )
+        
+class ConfirmarPedidoViewTest(BaseTestCase):
+    
+    def test_confirmar_pedido_correctamente(self):
+        
+        detalle = self.crear_detalle(
+            cantidad=2
+        )
+        
+        stock_inicial = self.producto.stock
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse("pedidos:confirmar_pedido")
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito")
+        )
+        
+        self.producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.producto.stock,
+            stock_inicial - detalle.cantidad
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION
+        )
+    
+    def test_confirmar_pedido_requiere_autenticacion(self):
+        
+        detalle = self.crear_detalle(
+            cantidad=2
+        )
+        
+        stock_inicial = self.producto.stock
+        
+        confirmar_url = reverse(
+            "pedidos:confirmar_pedido"
+        )
+        
+        login_url = reverse(
+            "usuarios:login"
+        )
+        
+        response = self.client.post(
+            confirmar_url
+        )
+        
+        self.assertRedirects(
+            response,
+            f"{login_url}?next={confirmar_url}"
+        )
+        
+        self.producto.refresh_from_db()
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.producto.stock,
+            stock_inicial
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE
+        )
+        
+        self.assertTrue(
+            DetallePedido.objects.filter(
+                pk=detalle.pk
+            ).exists()
+        )
+        
+    def test_confirmar_pedido_stock_insuficiente(self):
+        
+        cantidad = self.producto.stock + 1
+        
+        detalle = self.crear_detalle(
+            cantidad=cantidad
+        )
+        
+        stock_inicial = self.producto.stock
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse("pedidos:confirmar_pedido")
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito")
+        )
+        
+        self.producto.refresh_from_db()
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.producto.stock,
+            stock_inicial
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE
+        )
+        
+        self.assertTrue(
+            DetallePedido.objects.filter(
+                pk=detalle.pk
+            ).exists()
+        )
+        
+    def test_confirmar_pedido_ya_confirmado_no_descuenta_stock(self):
+        
+        detalle = self.crear_detalle(
+            cantidad=2
+        )
+        
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save()
+        
+        stock_incial = self.producto.stock
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse("pedidos:confirmar_pedido")
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito")
+        )
+        
+        self.producto.refresh_from_db()
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.producto.stock,
+            stock_incial
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION
+        )
+        
+        self.assertTrue(
+            DetallePedido.objects.filter(
+                pk=detalle.pk
+            ).exists()
+        )
