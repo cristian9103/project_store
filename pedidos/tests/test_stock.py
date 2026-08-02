@@ -1,5 +1,5 @@
 from pedidos.services import validar_stock, descontar_stock
-from pedidos.exceptions import StockInsuficienteError
+from pedidos.exceptions import StockInsuficienteError, CantidadInvalidaError
 from .base import BaseTestCase
 
 class StockTestCase(BaseTestCase):
@@ -65,4 +65,38 @@ class StockTestCase(BaseTestCase):
             self.producto.stock,
             20
         )
+        
+    def test_descontar_stock_cantidad_cero(self):
+        
+        stock_inicial = self.producto.stock
+        
+        with self.assertRaises(CantidadInvalidaError):
+            descontar_stock(
+                self.producto,
+                0
+            )
+            
+        self.producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.producto.stock,
+            stock_inicial
+        )
+        
+    def test_descontar_stock_cantidad_negativa(self):
+        
+        stock_inicial = self.producto.stock
+        
+        with self.assertRaises(CantidadInvalidaError):
+            descontar_stock(
+                self.producto,
+                -2
+            )
+            
+            self.producto.refresh_from_db()
+            
+            self.assertEqual(
+                self.producto.stock,
+                stock_inicial
+            )
         
