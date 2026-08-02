@@ -118,7 +118,13 @@ class PedidosTestCase(BaseTestCase):
     def test_confirmar_pedido_descuenta_stock(self):
         
         # Arrange
-        self.crear_detalle(cantidad=2)
+        cantidad = 3
+        
+        self.crear_detalle(
+            cantidad=cantidad
+        )
+        
+        stock_inicial = self.producto.stock
         
         # Act
         confirmar_pedido(self.pedido)
@@ -128,7 +134,7 @@ class PedidosTestCase(BaseTestCase):
         
         self.assertEqual(
             self.producto.stock,
-            18
+            stock_inicial - cantidad
         )
     
     def test_confirmar_pedido_actualiza_totales(self):

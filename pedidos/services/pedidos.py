@@ -27,25 +27,37 @@ def confirmar_pedido(pedido):
     
     with transaction.atomic():
         
-        if not pedido.detalles_pedido.exists():
-            raise PedidoVacioError("El pedido no tiene productos.")
+        if pedido.estado != EstadoPedido.PENDIENTE:
+            raise EstadoPedidoInvalidoError(
+                "Solo los pedidos pendientes pueden confirmarse."
+            )
         
-        for detalle in pedido.detalles_pedido.select_related("producto"):
+        detalles = list(
+            pedido.detalles_pedido
+            .select_related("producto")
+            .select_for_update(
+                of=("producto",)
+            )
+        )
+        
+        if not detalles:
+            raise PedidoVacioError(
+                "El pedido no tiene productos."
+            )
+        
+        for detalle in detalles:
             validar_stock(
                 detalle.producto,
                 detalle.cantidad
             )
             
-        for detalle in pedido.detalles_pedido.select_related("producto"):
+        for detalle in detalles:
             descontar_stock(
                 detalle.producto,
                 detalle.cantidad
             )
             
         actualizar_totales(pedido)
-        
-        if pedido.estado != EstadoPedido.PENDIENTE:
-            raise EstadoPedidoInvalidoError("Solo los pedidos pendientes pueden confirmarse.")
         
         pedido.estado = EstadoPedido.PREPARACION
         
