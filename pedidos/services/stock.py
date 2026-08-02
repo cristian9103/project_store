@@ -3,6 +3,11 @@ from pedidos.exceptions import StockInsuficienteError, CantidadInvalidaError
 
 def validar_stock(producto, cantidad):
     
+    if cantidad <= 0:
+        raise CantidadInvalidaError(
+            "La cantidad debe ser mayor que cero."
+        )
+    
     if cantidad > producto.stock:
         raise StockInsuficienteError(
             "No hay stock suficiente."
