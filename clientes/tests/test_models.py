@@ -1,7 +1,7 @@
 from django.db import IntegrityError
 
 from .base import BaseTestCase
-from clientes.models import Cliente
+from clientes.models import Cliente, Direccion
 from usuarios.models import Usuario
 
 class ClienteModelTest(BaseTestCase):
@@ -75,5 +75,103 @@ class ClienteModelTest(BaseTestCase):
         self.assertFalse(
             Cliente.objects.filter(
                 pk=cliente_id
+            ).exists()
+        )
+        
+class DireccionModelTest(BaseTestCase):
+    
+    def test_crear_direccion_correctamente(self):
+        
+        direccion = self.crear_direccion()
+        
+        self.assertEqual(
+            direccion.cliente,
+            self.cliente
+        )
+        
+        self.assertEqual(
+            direccion.nombre,
+            "Casa"
+        )
+        
+        self.assertEqual(
+            direccion.direccion,
+            "Carrera 10 # 20-30"
+        )
+        
+        self.assertEqual(
+            direccion.ciudad,
+            "Medellín"
+        )
+        
+        self.assertEqual(
+            direccion.departamento,
+            "Antioquia"
+        )
+        
+    def test_cliente_puede_tener_varias_direcciones(self):
+        
+        casa = self.crear_direccion(
+            nombre="Casa"
+        )
+        
+        trabajo = self.crear_direccion(
+            nombre="Trabajo",
+            direccion="Calle 50 # 40-20"
+        )
+        
+        self.assertEqual(
+            self.cliente.direcciones.count(),
+            2
+        )
+        
+        self.assertIn(
+            casa,
+            self.cliente.direcciones.all()
+        )
+        
+        self.assertIn(
+            trabajo,
+            self.cliente.direcciones.all()
+        )
+        
+    def test_direccion_no_es_principal_por_defecto(self):
+        
+        direccion = self.crear_direccion()
+        
+        self.assertFalse(
+            direccion.es_principal
+        )
+        
+    def test_direccion_puede_ser_principal(self):
+        
+        direccion = self.crear_direccion(
+            es_principal=True
+        )
+        
+        self.assertTrue(
+            direccion.es_principal
+        )
+        
+    def test_cliente_accede_a_sus_direcciones(self):
+        
+        direccion = self.crear_direccion()
+        
+        self.assertEqual(
+            self.cliente.direcciones.first(),
+            direccion
+        )
+        
+    def test_eliminar_cliente_elimina_sus_direcciones(self):
+        
+        direccion = self.crear_direccion()
+        
+        direccion_id = direccion.pk
+        
+        self.cliente.delete()
+        
+        self.assertFalse(
+            Direccion.objects.filter(
+                pk=direccion_id
             ).exists()
         )
