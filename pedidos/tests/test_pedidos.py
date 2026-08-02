@@ -1,7 +1,7 @@
 from .base import BaseTestCase
 from decimal import Decimal
 from pedidos.services import crear_pedido, confirmar_pedido
-from pedidos.models import Pedido, EstadoPedido
+from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.exceptions import (
     StockInsuficienteError,
     EstadoPedidoInvalidoError,
@@ -153,4 +153,37 @@ class PedidosTestCase(BaseTestCase):
         self.assertEqual(
             pedido.total,
             Decimal("48_000.00")
+        )
+
+    def test_confirmar_pedido_estado_invalido_no_modifica_stock(self):
+        
+        detalle = self.crear_detalle(
+            cantidad=2
+        )
+        
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save()
+        
+        stock_inicial = self.producto.stock
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            confirmar_pedido(self.pedido)
+            
+        self.producto.refresh_from_db()
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.producto.stock,
+            stock_inicial
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION
+        )
+        
+        self.assertTrue(
+            DetallePedido.objects.filter(
+                pk=detalle.pk
+            ).exists()
         )
