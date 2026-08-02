@@ -16,7 +16,7 @@ class BaseTestCase(TestCase):
         
         self.cliente = Cliente.objects.create(
             usuario=self.usuario,
-            documento="123453789",
+            documento="123456789",
             telefono="3001234567",
         )
         
