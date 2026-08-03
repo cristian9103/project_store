@@ -107,6 +107,53 @@ class CarritoTestCase(BaseTestCase):
             self.pedido.detalles_pedido.count(),
             0
         )
+        
+    def test_agregar_producto_calcula_subtotal_correctamente(self):
+        
+        cantidad = 3
+        
+        detalle = agregar_producto(
+            pedido=self.pedido,
+            producto=self.producto,
+            cantidad=cantidad,
+        )
+        
+        self.assertEqual(
+            detalle.precio_unitario,
+            self.producto.precio_venta
+        )
+        
+        self.assertEqual(
+            detalle.subtotal,
+            self.producto.precio_venta * cantidad
+        )
+        
+    def test_detalle_conserva_precio_aunque_cambie_producto(self):
+        
+        detalle = agregar_producto(
+            pedido=self.pedido,
+            producto=self.producto,
+            cantidad=2
+        )
+        
+        precio_original = detalle.precio_unitario
+        
+        self.producto.precio_venta = Decimal("25_000")
+        self.producto.save(
+            update_fields=["precio_venta"]
+        )
+        
+        detalle.refresh_from_db()
+        
+        self.assertEqual(
+            detalle.precio_unitario,
+            precio_original
+        )
+        
+        self.assertEqual(
+            detalle.subtotal,
+            precio_original * detalle.cantidad
+        )
     
     #-----------------------------------------
     # actualizar_cantidad()
