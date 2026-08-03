@@ -66,5 +66,24 @@ class Pedido(BaseModel):
         ordering = ["-fecha"]
         db_table = "pedidos"
         
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(subtotal__gte=0),
+                name="pedido_subtotal_no_negativo",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(costo_envio__gte=0),
+                name="pedido_costo_envio_no_negativo",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(descuento__gte=0),
+                name="pedido_descuento_no_negativo",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(total__gte=0),
+                name="pedido_total_no_negativo",
+            ),
+        ]
+        
     def __str__(self):
         return f"Pedido # {self.pk} - {self.cliente}"

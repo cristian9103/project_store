@@ -43,7 +43,19 @@ class DetallePedido(BaseModel):
             models.UniqueConstraint(
                 fields=["pedido", "producto"],
                 name="unique_producto_por_pedido"
-            )
+            ),
+            models.CheckConstraint(
+                condition=models.Q(precio_unitario__gte=0),
+                name="detalle_precio_unitario_no_negativo",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(cantidad__gte=1),
+                name="detalle_cantidad_positiva",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(subtotal__gte=0),
+                name="detalle_subtotal_no_negativo",
+            ),
         ]
         
     def __str__(self):

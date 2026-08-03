@@ -13,7 +13,10 @@ def calcular_subtotal(pedido):
 def calcular_total(pedido, subtotal=None):
     if subtotal is None:
         subtotal = calcular_subtotal(pedido)
-    return subtotal + pedido.costo_envio - pedido.descuento
+        
+    total = subtotal + pedido.costo_envio - pedido.descuento
+    
+    return max(total, ZERO)
 
 def actualizar_totales(pedido):
     subtotal = calcular_subtotal(pedido)
