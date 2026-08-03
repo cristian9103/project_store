@@ -4,6 +4,7 @@ from pedidos.models import DetallePedido
 from pedidos.services import (
     calcular_subtotal,
     actualizar_totales,
+    calcular_total,
     ZERO,
 ) 
 from catalogo.models import Producto
@@ -157,6 +158,44 @@ class CalculosTestCase(BaseTestCase):
         self.assertEqual(
             total,
             Decimal("45_000.00")
+        )
+        
+    def test_calcular_total_no_es_negativo(self):
+        
+        subtotal = Decimal("20_000.00")
+                
+        self.pedido.costo_envio = Decimal("5_000.00")
+        self.pedido.descuento = Decimal("30_000.00")
+        
+        self.pedido.save()
+        
+        total = calcular_total(
+            self.pedido,
+            subtotal=subtotal
+        )
+        
+        self.assertEqual(
+            total,
+            ZERO
+        )
+        
+    def test_calcular_total_calcula_correctamente(self):
+        
+        subtotal = Decimal("20_000.00")
+        
+        self.pedido.costo_envio = Decimal("5_000.00")
+        self.pedido.descuento = Decimal("3_000.00")
+        
+        self.pedido.save()
+        
+        total = calcular_total(
+            self.pedido,
+            subtotal=subtotal
+        )
+        
+        self.assertEqual(
+            total,
+            Decimal("22_000.00")
         )
         
     #-----------------------------------------
