@@ -3,7 +3,12 @@ from decimal import Decimal
 from django.db import IntegrityError, transaction
 
 from .base import BaseTestCase
-from pedidos.models import DetallePedido
+from pedidos.models import (
+    DetallePedido,
+    Pedido,
+    EstadoPedido,
+)
+from pedidos.services import ZERO
 
 class ModelosTestCase(BaseTestCase):
     
@@ -69,4 +74,52 @@ class ModelosTestCase(BaseTestCase):
         self.assertEqual(
             detalle.subtotal,
             Decimal("60_000.00")
+        )
+        
+    def test_pedido_no_permite_producto_duplicado(self):
+        
+        DetallePedido.objects.create(
+            pedido=self.pedido,
+            producto=self.producto,
+            precio_unitario=Decimal("20_000.00"),
+            cantidad=1,
+        )
+        
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                DetallePedido.objects.create(
+                    pedido=self.pedido,
+                    producto=self.producto,
+                    precio_unitario=Decimal("20_000.00"),
+                    cantidad=2
+                )
+                
+    def test_mismo_producto_permitido_en_pedidos_diferentes(self):
+        
+        DetallePedido.objects.create(
+            pedido=self.pedido,
+            producto=self.producto,
+            precio_unitario=Decimal("20_000.00"),
+            cantidad=1,
+        )
+        
+        otro_pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado=EstadoPedido.PENDIENTE,
+            subtotal=ZERO,
+            costo_envio=ZERO,
+            descuento=ZERO,
+            total=ZERO,
+        )
+        
+        detalle = DetallePedido.objects.create(
+            pedido=otro_pedido,
+            producto=self.producto,
+            precio_unitario=Decimal("20_000.00"),
+            cantidad=2,
+        )
+        
+        self.assertEqual(
+            detalle.producto,
+            self.producto
         )
