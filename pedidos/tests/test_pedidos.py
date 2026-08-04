@@ -193,3 +193,20 @@ class PedidosTestCase(BaseTestCase):
                 pk=detalle.pk
             ).exists()
         )
+        
+    def test_crear_pedido_reutiliza_pedido_pendiente(self):
+        
+        pedido = crear_pedido(self.cliente)
+        
+        self.assertEqual(
+            pedido.pk,
+            self.pedido.pk
+        )
+        
+        self.assertEqual(
+            Pedido.objects.filter(
+                cliente=self.cliente,
+                estado=EstadoPedido.PENDIENTE
+            ).count(),
+            1
+        )
