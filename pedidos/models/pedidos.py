@@ -83,6 +83,13 @@ class Pedido(BaseModel):
                 condition=models.Q(total__gte=0),
                 name="pedido_total_no_negativo",
             ),
+            models.UniqueConstraint(
+                fields=["cliente"],
+                condition=models.Q(
+                    estado=EstadoPedido.PENDIENTE
+                ),
+                name="unique_pedido_pendiente_por_clliente"
+            ), 
         ]
         
     def __str__(self):

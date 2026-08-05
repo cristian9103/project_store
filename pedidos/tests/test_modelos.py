@@ -96,7 +96,7 @@ class ModelosTestCase(BaseTestCase):
                 
     def test_mismo_producto_permitido_en_pedidos_diferentes(self):
         
-        DetallePedido.objects.create(
+        detalle_1 = DetallePedido.objects.create(
             pedido=self.pedido,
             producto=self.producto,
             precio_unitario=Decimal("20_000.00"),
@@ -105,14 +105,14 @@ class ModelosTestCase(BaseTestCase):
         
         otro_pedido = Pedido.objects.create(
             cliente=self.cliente,
-            estado=EstadoPedido.PENDIENTE,
+            estado=EstadoPedido.PREPARACION,
             subtotal=ZERO,
             costo_envio=ZERO,
             descuento=ZERO,
             total=ZERO,
         )
         
-        detalle = DetallePedido.objects.create(
+        detalle_2 = DetallePedido.objects.create(
             pedido=otro_pedido,
             producto=self.producto,
             precio_unitario=Decimal("20_000.00"),
@@ -120,6 +120,45 @@ class ModelosTestCase(BaseTestCase):
         )
         
         self.assertEqual(
-            detalle.producto,
-            self.producto
+            detalle_1.producto,
+            detalle_2.producto
+        )
+        
+        self.assertNotEqual(
+            detalle_1.pedido_id,
+            detalle_2.pedido_id
+        )
+        
+    def test_cliente_no_puede_tener_dos_pedidos_pendientes(self):
+        
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Pedido.objects.create(
+                    cliente=self.cliente,
+                    estado=EstadoPedido.PENDIENTE,
+                    subtotal=ZERO,
+                    costo_envio=ZERO,
+                    descuento=ZERO,
+                    total=ZERO,
+                )
+                
+    def test_cliente_puede_tener_varios_pedidos_no_pendientes(self):
+        
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save(update_fields=["estado"])
+        
+        segundo_pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado=EstadoPedido.ENTREGADO,
+            subtotal=ZERO,
+            costo_envio=ZERO,
+            descuento=ZERO,
+            total=ZERO,
+        )
+        
+        self.assertEqual(
+            Pedido.objects.filter(
+                cliente=self.cliente
+            ).count(),
+            2
         )
