@@ -52,6 +52,28 @@ class PedidosTestCase(BaseTestCase):
             pedido.estado,
             EstadoPedido.PENDIENTE
         )
+        
+    def test_crear_pedido_crea_nuevo_si_no_hay_pendiente(self):
+        
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save(update_fields=["estado"])
+        
+        nuevo_pedido = crear_pedido(self.cliente)
+        
+        self.assertNotEqual(
+            nuevo_pedido.pk,
+            self.pedido.pk
+        )
+        
+        self.assertEqual(
+            nuevo_pedido.cliente,
+            self.cliente
+        )
+        
+        self.assertEqual(
+            nuevo_pedido.estado,
+            EstadoPedido.PENDIENTE
+        )
     
     #-----------------------------------------
     # confirmar_pedido()
