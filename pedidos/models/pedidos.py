@@ -88,7 +88,7 @@ class Pedido(BaseModel):
                 condition=models.Q(
                     estado=EstadoPedido.PENDIENTE
                 ),
-                name="unique_pedido_pendiente_por_clliente"
+                name="unique_pedido_pendiente_por_cliente"
             ), 
         ]
         

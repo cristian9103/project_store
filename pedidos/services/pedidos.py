@@ -3,7 +3,7 @@ from .calculos import ZERO, actualizar_totales
 from .stock import validar_stock, descontar_stock
 from pedidos.exceptions import PedidoVacioError, EstadoPedidoInvalidoError
 
-from django.db import transaction
+from django.db import transaction, IntegrityError
 
 def crear_pedido(cliente):
     pedido = Pedido.objects.filter(
@@ -14,14 +14,32 @@ def crear_pedido(cliente):
     if pedido:
         return pedido
     
-    return Pedido.objects.create(
-        cliente=cliente,
-        estado=EstadoPedido.PENDIENTE,
-        subtotal=ZERO,
-        costo_envio=ZERO,
-        descuento = ZERO,
-        total=ZERO,
-    ) 
+    try:
+        with transaction.atomic():
+            return Pedido.objects.create(
+                cliente=cliente,
+                estado=EstadoPedido.PENDIENTE,
+                subtotal=ZERO,
+                costo_envio=ZERO,
+                descuento = ZERO,
+                total=ZERO,
+            )
+            
+    except IntegrityError as error:
+        
+        constraint_name = getattr(
+            getattr(error.__cause__, "diag", None),
+            "constraint_name",
+            None
+        )
+        
+        if constraint_name != "unique_pedido_pendiente_por_cliente":
+            raise
+        
+        return Pedido.objects.get(
+            cliente=cliente,
+            estado=EstadoPedido.PENDIENTE
+        )
     
 def confirmar_pedido(pedido):
     
