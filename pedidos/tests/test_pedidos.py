@@ -7,6 +7,7 @@ from pedidos.exceptions import (
     EstadoPedidoInvalidoError,
     PedidoVacioError
 )
+from catalogo.models import Producto
 
 class PedidosTestCase(BaseTestCase):
     
@@ -68,6 +69,31 @@ class PedidosTestCase(BaseTestCase):
         self.assertEqual(
             nuevo_pedido.cliente,
             self.cliente
+        )
+        
+        self.assertEqual(
+            nuevo_pedido.estado,
+            EstadoPedido.PENDIENTE
+        )
+        
+    def test_crear_pedido_crea_nuevo_despues_de_confirmar(self):
+        
+        self.crear_detalle(
+            cantidad=2
+        )
+        
+        confirmar_pedido(self.pedido)
+        
+        nuevo_pedido = crear_pedido(self.cliente)
+        
+        self.assertNotEqual(
+            nuevo_pedido.pk,
+            self.pedido.pk
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION
         )
         
         self.assertEqual(
@@ -231,4 +257,81 @@ class PedidosTestCase(BaseTestCase):
                 estado=EstadoPedido.PENDIENTE
             ).count(),
             1
+        )
+        
+    def test_confirmar_pedido_revierte_stock_si_falla(self):
+        
+        producto_2 = Producto.objects.create(
+            categoria=self.categoria,
+            marca=self.marca,
+            sku="LAB002",
+            nombre="Labial 2",
+            precio_compra=Decimal("10.00"),
+            precio_venta=Decimal("20.00"),
+            stock=1,
+        )
+        
+        self.crear_detalle(
+            producto=self.producto,
+            cantidad=2,
+        )
+        
+        self.crear_detalle(
+            producto=producto_2,
+            cantidad=2,
+        )
+        
+        stock_producto_1 = self.producto.stock
+        stock_producto_2 = producto_2.stock
+        
+        with self.assertRaises(StockInsuficienteError):
+            confirmar_pedido(self.pedido)
+            
+        self.producto.refresh_from_db()
+        producto_2.refresh_from_db()
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.producto.stock,
+            stock_producto_1
+        )
+        
+        self.assertEqual(
+            producto_2.stock,
+            stock_producto_2
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE
+        )
+        
+    def test_confirmar_pedido_fallido_no_modifica_datos_del_pedido(self):
+        
+        self.crear_detalle(
+            cantidad=21
+        )
+        
+        estado_original = self.pedido.estado
+        subtotal_original = self.pedido.subtotal
+        total_original = self.pedido.total
+        
+        with self.assertRaises(StockInsuficienteError):
+            confirmar_pedido(self.pedido)
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            estado_original
+        )
+        
+        self.assertEqual(
+            self.pedido.subtotal,
+            subtotal_original
+        )
+        
+        self.assertEqual(
+            self.pedido.total,
+            total_original
         )
