@@ -18,3 +18,30 @@ class Direccion(BaseModel):
         verbose_name = "Dirección"
         verbose_name_plural = "Direcciones"
         db_table = "direcciones"
+        
+        ordering = [
+            "-es_principal",
+            "-fecha_creacion",
+        ]
+        
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cliente"],
+                condition=models.Q(
+                    es_principal=True
+                ),
+                name="unique_direccion_principal_por_cliente",
+            )
+        ]
+        
+    def __str__(self):
+        return f"{self.nombre} - {self.ciudad}"
+    
+    @property
+    def direccion_completa(self):
+        return(
+            f"{self.direccion}, "
+            f"{self.ciudad}, "
+            f"{self.departamento}"
+        )
+    
