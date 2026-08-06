@@ -175,3 +175,136 @@ class DireccionModelTest(BaseTestCase):
                 pk=direccion_id
             ).exists()
         )
+        
+    def test_crear_direccion(self):
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001"
+        )
+        
+        self.assertEqual(
+            direccion.cliente,
+            self.cliente
+        )
+        
+        self.assertFalse(
+            direccion.es_principal
+        )
+        
+    def test_direccion_completa(self):
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001"
+        )
+        
+        self.assertEqual(
+            direccion.direccion_completa,
+            "Cra 10 #20-30, Medellín, Antioquia"
+        )
+        
+    def test_str(self):
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001"
+        )
+        
+        self.assertEqual(
+            str(direccion),
+            "Casa - Medellín"
+        )
+        
+    def test_cliente_no_puede_tener_dos_direcciones_principales(self):
+        
+        Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            es_principal=True,
+        )
+        
+        with self.assertRaises(
+            IntegrityError
+        ):
+            Direccion.objects.create(
+                cliente=self.cliente,
+                nombre="Oficina",
+                direccion="Cra 50 #40-20",
+                ciudad="Medellín",
+                departamento="Antioquia",
+                es_principal=True,
+            )
+            
+    def test_cliente_puede_tener_varias_direcciones_secundarias(self):
+        
+        Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Oficina",
+            direccion="Cra 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        self.assertEqual(
+            self.cliente.direcciones.count(),
+            2
+        )
+        
+    def test_ordering_muestra_principal_primero(self):
+        
+        secundaria = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            es_principal=False,
+        )
+        
+        principal = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Oficina",
+            direccion="Cra 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            es_principal=True,
+        )
+        
+        direcciones = list(
+            Direccion.objects.all()
+        )
+        
+        self.assertEqual(
+            direcciones[0],
+            principal
+        )
+        
+        self.assertEqual(
+            direcciones[1],
+            secundaria
+        )
+        
