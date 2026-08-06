@@ -77,3 +77,20 @@ class AgregarAlCarritoFormTest(BaseTestCase):
             form.errors
         )
         
+    def test_formulario_sin_producto_no_valida_stock(self):
+        
+        form = AgregarAlCarritoForm(
+            data={
+                "cantidad": 999
+            }
+        )
+        
+        self.assertTrue(
+            form.is_valid()
+        )
+        
+        self.assertEqual(
+            form.cleaned_data["cantidad"],
+            999
+        )
+        
