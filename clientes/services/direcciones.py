@@ -59,3 +59,35 @@ def establecer_principal(direccion):
         )
         
     return direccion
+
+@transaction.atomic
+def actualizar_direccion(
+    direccion,
+    *,
+    nombre,
+    direccion_texto,
+    ciudad,
+    departamento,
+    codigo_postal="",
+    es_principal=False,
+):
+    direccion.nombre = nombre
+    direccion.direccion = direccion_texto
+    direccion.ciudad = ciudad
+    direccion.departamento = departamento
+    direccion.codigo_postal = codigo_postal
+    
+    direccion.save(
+        update_fields=[
+            "nombre",
+            "direccion",
+            "ciudad",
+            "departamento",
+            "codigo_postal",
+        ]
+    )
+    
+    if es_principal:
+        establecer_principal(direccion)
+        
+    return direccion

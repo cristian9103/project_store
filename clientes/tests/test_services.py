@@ -1,4 +1,8 @@
-from clientes.services import crear_direccion, establecer_principal
+from clientes.services import (
+    crear_direccion, 
+    establecer_principal,
+    actualizar_direccion,
+)
 from clientes.models import Direccion
 from pedidos.tests import BaseTestCase
 
