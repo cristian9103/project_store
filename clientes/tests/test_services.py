@@ -105,3 +105,39 @@ class DireccionTestCase(BaseTestCase):
             1,
         )
         
+    def test_actualizar_direccion(self):
+        
+        direccion = crear_direccion(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        actualizar_direccion(
+            direccion,
+            nombre="Oficina",
+            direccion_texto="Cra 50",
+            ciudad="Bogotá",
+            departamento="Cundinamarca",
+            codigo_postal="110111",
+            es_principal=True,
+        )
+        
+        direccion.refresh_from_db()
+        
+        self.assertEqual(
+            direccion.nombre,
+            "Oficina"
+        )
+        
+        self.assertEqual(
+            direccion.ciudad,
+            "Bogotá"
+        )
+        
+        self.assertTrue(
+            direccion.es_principal
+        )
+        

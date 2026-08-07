@@ -24,27 +24,21 @@ def crear_direccion(
     tiene_direcciones = Direccion.objects.filter(
         cliente=cliente
     ).exists()
-    
-    if not tiene_direcciones:
-        es_principal = True
         
-    if es_principal:
-        Direccion.objects.filter(
-            cliente=cliente,
-            es_principal=True
-        ).update(
-            es_principal=False
-        )
-        
-    return Direccion.objects.create(
+    direccion_obj = Direccion.objects.create(
         cliente=cliente,
         nombre=nombre,
         direccion=direccion,
         ciudad=ciudad,
         departamento=departamento,
         codigo_postal=codigo_postal,
-        es_principal=es_principal
+        es_principal=False,
     )
+    
+    if not tiene_direcciones or es_principal:
+        establecer_principal(direccion_obj)
+        
+    return direccion_obj
     
 @transaction.atomic
 def establecer_principal(direccion):
