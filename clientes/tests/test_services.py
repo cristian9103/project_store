@@ -2,6 +2,7 @@ from clientes.services import (
     crear_direccion, 
     establecer_principal,
     actualizar_direccion,
+    eliminar_direccion,
 )
 from clientes.models import Direccion
 from pedidos.tests import BaseTestCase
@@ -209,5 +210,87 @@ class DireccionTestCase(BaseTestCase):
         self.assertEqual(
             direccion.codigo_postal,
             "050001"
+        )
+        
+    def test_eliminar_direccion_secundaria(self):
+        
+        principal = crear_direccion(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        secundaria = crear_direccion(
+            cliente=self.cliente,
+            nombre="Oficina",
+            direccion="Cra 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        eliminar_direccion(secundaria)
+        
+        self.assertFalse(
+            Direccion.objects.filter(
+                pk=secundaria.pk
+            ).exists()
+        )
+        
+        principal.refresh_from_db()
+        
+        self.assertTrue(
+            principal.es_principal
+        )
+        
+    def test_eliminar_principal_asigna_otra_principal(self):
+        
+        principal = crear_direccion(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        secundaria = crear_direccion(
+            cliente=self.cliente,
+            nombre="Oficina",
+            direccion="Cra 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        eliminar_direccion(principal)
+        
+        secundaria.refresh_from_db()
+        
+        self.assertTrue(
+            secundaria.es_principal
+        )
+        
+        self.assertFalse(
+            Direccion.objects.filter(
+                pk=principal.pk
+            ).exists()
+        )
+        
+    def test_eliminar_unica_direccion(self):
+        
+        direccion = crear_direccion(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        eliminar_direccion(direccion)
+        
+        self.assertFalse(
+            Direccion.objects.filter(
+                pk=direccion.pk
+            ).exists()
         )
         
