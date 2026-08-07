@@ -2,9 +2,12 @@ from django.http import Http404
 
 from .base import BaseTestCase
 
-from clientes.selectors import obtener_cliente
+from clientes.selectors import (
+    obtener_cliente,
+    listar_direcciones,
+)
 from usuarios.models import Usuario
-from clientes.models import Cliente
+from clientes.models import Cliente, Direccion
 
 class ObtenerClienteTest(BaseTestCase):
     
@@ -69,3 +72,61 @@ class ObtenerClienteTest(BaseTestCase):
             )
             
             cliente.usuario.first_name
+            
+class DireccionTestCase(BaseTestCase):
+    
+    def test_listar_direcciones_devuelve_las_del_cliente(self):
+        
+        direccion1 = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            es_principal=True,
+        )
+        
+        direccion2 = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Oficina",
+            direccion="Cra 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            es_principal=True,
+        )
+        
+        direcciones = listar_direcciones(self.cliente)
+        
+        self.assertEqual(
+            set(direcciones),
+            {direccion1, direccion2}
+        )
+        
+    def test_listar_direcciones_no_devuelve_direcciones_de_otro_cliente(self):
+        
+        Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+        )
+        
+        otra_direccion = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa",
+            direccion="Cra 20",
+            ciudad="Bogotá",
+            departamento="Cundinamarca",
+        )
+        
+        direcciones = listar_direcciones(self.cliente)
+        
+        self.assertNotIn(
+            otra_direccion,
+            direcciones
+        )
