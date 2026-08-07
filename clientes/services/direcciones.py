@@ -91,3 +91,24 @@ def actualizar_direccion(
         establecer_principal(direccion)
         
     return direccion
+
+@transaction.atomic
+def eliminar_direccion(direccion):
+    
+    era_principal = direccion.es_principal
+    cliente = direccion.cliente
+    
+    direccion.delete()
+    
+    if era_principal:
+        nueva_principal = (
+            Direccion.objects
+            .filter(cliente=cliente)
+            .order_by("fecha_creacion")
+            .first()
+        )
+        
+        if nueva_principal:
+            establecer_principal(nueva_principal)
+            
+    return True
