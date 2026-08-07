@@ -145,3 +145,69 @@ class DireccionTestCase(BaseTestCase):
             direccion.es_principal
         )
         
+    def test_actualizar_direccion_no_cambia_principal_si_es_principal_false(self):
+        
+        direccion1 = crear_direccion(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        direccion2 = crear_direccion(
+            cliente=self.cliente,
+            nombre="Oficina",
+            direccion="Cra 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        actualizar_direccion(
+            direccion2,
+            nombre="Oficina nueva",
+            direccion_texto="Cra 55",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="",
+            es_principal=False,
+        )
+        
+        direccion1.refresh_from_db()
+        direccion2.refresh_from_db()
+        
+        self.assertTrue(
+            direccion1.es_principal
+        )
+        
+        self.assertFalse(
+            direccion2.es_principal
+        )
+        
+    def test_actualizar_codigo_postal(self):
+        
+        direccion = crear_direccion(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        actualizar_direccion(
+            direccion,
+            nombre="casa",
+            direccion_texto="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=False,
+        )
+        
+        direccion.refresh_from_db()
+        
+        self.assertEqual(
+            direccion.codigo_postal,
+            "050001"
+        )
+        

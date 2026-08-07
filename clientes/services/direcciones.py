@@ -3,6 +3,26 @@ from django.db import transaction
 from clientes.models import Direccion
 
 @transaction.atomic
+def establecer_principal(direccion):
+    
+    Direccion.objects.filter(
+        cliente=direccion.cliente,
+        es_principal=True,
+    ).exclude(
+        pk=direccion.pk,
+    ).update(
+        es_principal=False
+    )
+    
+    if not direccion.es_principal:
+        direccion.es_principal = True
+        direccion.save(
+            update_fields=["es_principal"]
+        )
+        
+    return direccion
+
+@transaction.atomic
 def crear_direccion(
     *,
     cliente,
@@ -39,26 +59,6 @@ def crear_direccion(
         establecer_principal(direccion_obj)
         
     return direccion_obj
-    
-@transaction.atomic
-def establecer_principal(direccion):
-    
-    Direccion.objects.filter(
-        cliente=direccion.cliente,
-        es_principal=True,
-    ).exclude(
-        pk=direccion.pk,
-    ).update(
-        es_principal=False
-    )
-    
-    if not direccion.es_principal:
-        direccion.es_principal = True
-        direccion.save(
-            update_fields=["es_principal"]
-        )
-        
-    return direccion
 
 @transaction.atomic
 def actualizar_direccion(
