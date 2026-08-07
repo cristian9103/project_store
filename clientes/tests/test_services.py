@@ -1,4 +1,4 @@
-from clientes.services import crear_direccion
+from clientes.services import crear_direccion, establecer_principal
 from clientes.models import Direccion
 from pedidos.tests import BaseTestCase
 
@@ -44,5 +44,64 @@ class DireccionTestCase(BaseTestCase):
         
         self.assertTrue(
             direccion.es_principal
+        )
+        
+    def test_establecer_principal_actualiza_la_direccion_principal(self):
+        
+        direccion1 = crear_direccion(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        direccion2 = crear_direccion(
+            cliente=self.cliente,
+            nombre="Oficina",
+            direccion="Cra 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        establecer_principal(direccion2)
+        
+        direccion1.refresh_from_db()
+        direccion2.refresh_from_db()
+        
+        self.assertFalse(
+            direccion1.es_principal
+        )
+        
+        self.assertTrue(
+            direccion2.es_principal
+        )
+        
+    def test_establecer_principal_deja_una_sola_direccion_principal(self):
+        
+        crear_direccion(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        direccion2 = crear_direccion(
+            cliente=self.cliente,
+            nombre="Oficina",
+            direccion="Cra 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        establecer_principal(direccion2)
+        
+        self.assertEqual(
+            Direccion.objects.filter(
+                cliente=self.cliente,
+                es_principal=True,
+            ).count(),
+            1,
         )
         
