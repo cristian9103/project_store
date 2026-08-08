@@ -65,22 +65,57 @@ class DireccionFormTestCase(BaseTestCase):
             form.cleaned_data["es_principal"]
         )
         
-    def test_formulario_direccion_rechaza_nombre_demasiado_largo(self):
+    def test_formulario_direccion_es_principal_false_por_defecto(self):
         
         form = DireccionForm(
             data={
-                "nombre": "A" * 51,
+                "nombre": "Casa",
                 "direccion": "Carrera 10 # 20-30",
                 "ciudad": "Medellín",
                 "departamento": "Antioquia",
                 "codigo_postal": "",
-                "es_principal": False,
             }
         )
         
-        self.assertFalse(form.is_valid())
+        self.assertTrue(form.is_valid())
         
-        self.assertIn(
-            "nombre",
-            form.errors
+        self.assertFalse(
+            form.cleaned_data["es_principal"]
         )
+        
+    def test_formulario_direccion_rechaza_campos_damasiado_largos(self):
+        
+        campos = {
+            "nombre": 51,
+            "direccion": 151,
+            "ciudad": 71,
+            "departamento": 71,
+            "codigo_postal": 21,
+        }
+        
+        datos_base = {
+            "nombre": "Casa",
+            "direccion": "Carrera 10 # 20-30",
+            "ciudad": "Medellín",
+            "departamento": "Antioquia",
+            "codigo_postal": "",
+            "es_principal": False,
+        }
+        
+        for campo, longitud in campos.items():
+            
+            with self.subTest(campo=campo):
+                
+                datos = datos_base.copy()
+                datos[campo] = "A" * longitud
+                
+                form = DireccionForm(data=datos)
+                
+                self.assertFalse(
+                    form.is_valid()
+                )
+                
+                self.assertIn(
+                    campo,
+                    form.errors
+                )
