@@ -94,7 +94,6 @@ class DireccionTestCase(BaseTestCase):
             direccion="Cra 50",
             ciudad="Medellín",
             departamento="Antioquia",
-            es_principal=True,
         )
         
         direcciones = listar_direcciones(self.cliente)
@@ -116,6 +115,8 @@ class DireccionTestCase(BaseTestCase):
         
         otro_cliente = Cliente.objects.create(
             usuario=self.otro_usuario,
+            documento="87878787",
+            telefono="300145789",
         )
         
         otra_direccion = Direccion.objects.create(
@@ -157,6 +158,8 @@ class DireccionTestCase(BaseTestCase):
         
         otro_cliente = Cliente.objects.create(
             usuario=self.otro_usuario,
+            documento="87874545",
+            telefono="3001445454",
         )
         
         direccion = Direccion.objects.create(
