@@ -6,6 +6,7 @@ from clientes.selectors import (
     obtener_cliente,
     listar_direcciones,
     obtener_direccion,
+    obtener_direccion_principal,
 )
 from usuarios.models import Usuario
 from clientes.models import Cliente, Direccion
@@ -171,3 +172,41 @@ class DireccionTestCase(BaseTestCase):
                 direccion.pk,
                 self.cliente,
             )
+            
+    def test_obtener_direccion_principal(self):
+        
+        principal = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            es_principal=True,
+        )
+        
+        Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Oficina",
+            direccion="Cra 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        resultado = obtener_direccion_principal(
+            self.cliente
+        )
+        
+        self.assertEqual(
+            resultado,
+            principal
+        )
+        
+    def test_obtener_direccion_principal_devuelve_none_si_no_existe(self):
+        
+        resultado = obtener_direccion_principal(
+            self.cliente
+        )
+        
+        self.assertIsNone(
+            resultado
+        )
