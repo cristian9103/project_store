@@ -46,3 +46,41 @@ class DireccionFormTestCase(BaseTestCase):
         )
         
         self.assertTrue(form.is_valid())
+        
+    def test_formulario_direccion_permite_establecer_principal(self):
+        
+        form = DireccionForm(
+            data={
+                "nombre": "Casa",
+                "direccion": "Carrera 10 # 20-30",
+                "ciudad": "Medellín",
+                "departamento": "Antioquia",
+                "codigo_postal": "",
+                "es_principal": True,
+            }
+        )
+        
+        self.assertTrue(form.is_valid())
+        self.assertTrue(
+            form.cleaned_data["es_principal"]
+        )
+        
+    def test_formulario_direccion_rechaza_nombre_demasiado_largo(self):
+        
+        form = DireccionForm(
+            data={
+                "nombre": "A" * 51,
+                "direccion": "Carrera 10 # 20-30",
+                "ciudad": "Medellín",
+                "departamento": "Antioquia",
+                "codigo_postal": "",
+                "es_principal": False,
+            }
+        )
+        
+        self.assertFalse(form.is_valid())
+        
+        self.assertIn(
+            "nombre",
+            form.errors
+        )
