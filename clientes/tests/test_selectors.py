@@ -5,6 +5,7 @@ from .base import BaseTestCase
 from clientes.selectors import (
     obtener_cliente,
     listar_direcciones,
+    obtener_direccion,
 )
 from usuarios.models import Usuario
 from clientes.models import Cliente, Direccion
@@ -130,3 +131,43 @@ class DireccionTestCase(BaseTestCase):
             otra_direccion,
             direcciones
         )
+        
+    def test_obtener_direccion_devuelve_la_direccion(self):
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        resultado = obtener_direccion(
+            direccion.pk,
+            self.cliente
+        )
+        
+        self.assertEqual(
+            resultado,
+            direccion
+        )
+        
+    def test_obtener_direccion_de_otro_cliente_lanza_404(self):
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa",
+            direccion="Cra 20",
+            ciudad="Bogotá",
+            departamento="Cundinamarca",
+        )
+        
+        with self.assertRaises(Http404):
+            obtener_direccion(
+                direccion.pk,
+                self.cliente,
+            )
