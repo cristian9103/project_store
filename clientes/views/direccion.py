@@ -5,7 +5,8 @@ from django.views import View
 from clientes.forms import DireccionForm
 from clientes.selectors import (
     obtener_cliente,
-    listar_direcciones
+    listar_direcciones,
+    obtener_direccion,
 )
 from clientes.services import crear_direccion as crear_direccion_service
 
@@ -54,5 +55,24 @@ class ListaDireccionesView(LoginRequiredMixin, View):
             },
         )
         
+class DetalleDireccionView(LoginRequiredMixin, View):
+    
+    def get(self, request, pk):
+        cliente = obtener_cliente(request.user)
+        
+        direccion = obtener_direccion(
+            direccion_id=pk, 
+            cliente=cliente
+        )
+        
+        return render(
+            request,
+            "clientes/direcciones/detalle.html",
+            {
+                "direccion": direccion
+            },
+        )
+        
 crear_direccion = CrearDireccionView.as_view()
 lista_direcciones = ListaDireccionesView.as_view()
+detalle_direccion = DetalleDireccionView.as_view()

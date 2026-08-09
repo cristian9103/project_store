@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from clientes.models import Direccion
+from clientes.models import Direccion, Cliente
 from clientes.tests import BaseTestCase
 
 class DireccionViewTestCase(BaseTestCase):
@@ -165,4 +165,91 @@ class DireccionViewTestCase(BaseTestCase):
         self.assertEqual(
             len(response.context["direcciones"]),
             2,
+        )
+        
+    def test_listar_direcciones_no_muestra_las_de_otro_cliente(self):
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="456789123",
+            telefono="30012345667",
+        )
+        
+        Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Carrera 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa de otro cliente",
+            direccion="Carrera 80 # 50-60",
+            ciudad="Bogotá",
+            departamento="Cundinamarca",
+            codigo_postal="110001",
+            es_principal=True,
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse("clientes:lista_direcciones")
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        direcciones = response.context["direcciones"]
+        
+        self.assertEqual(
+            direcciones.count(),
+            1,
+        )
+        
+        self.assertEqual(
+            direcciones.first().cliente,
+            self.cliente,
+        )
+        
+        self.assertEqual(
+            direcciones.first().nombre,
+            "Casa",
+        )
+        
+    def test_obtener_direccion_muestra_direccion_del_cliente(self):
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Carrera 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse(
+                "clientes:detalle_direccion",
+                kwargs={"pk": direccion.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertEqual(
+            response.context["direccion"],
+            direccion,
         )

@@ -1,0 +1,10 @@
+<h1>{{ direccion.nombre }}</h1>
+
+<p>{{ direccion.direccion }}</p>
+<p>{{ direccion.ciudad }}</p>
+<p>{{ direccion.departamento }}</p>
+<p>{{ direccion.codigo_postal }}</p>
+
+{% if direccion.es_principal %}
+    <p>Dirección principal</p>
+{% endif %}
