@@ -336,3 +336,125 @@ class DireccionViewTestCase(BaseTestCase):
             direccion.codigo_postal,
             "050002",
         )
+        
+    def test_editar_direccion_de_otro_cliente_lanza_404(self):
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa de otro cliente",
+            direccion="Carrera 80 # 50-60",
+            ciudad="Bogotá",
+            departamento="Cundinamarca",
+            codigo_postal="110001",
+            es_principal=True,
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "clientes:editar_direccion",
+                kwargs={"pk": direccion.pk},
+            ),
+            data={
+                "nombre": "Dirección modificada",
+                "direccion": "Carrera 20 # 30-40",
+                "ciudad": "Medellín",
+                "departamento": "Antioquia",
+                "codigo_postal": "050001",
+                "es_principal": True,
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+        
+        direccion.refresh_from_db()
+        
+        self.assertEqual(
+            direccion.nombre,
+            "Casa de otro cliente",
+        )
+        
+        self.assertEqual(
+            direccion.direccion,
+            "Carrera 80 # 50-60",
+        )
+        
+    def test_eliminar_direccion_del_cliente(self):
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Carrera 20 # 30-40",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=False,
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "clientes:eliminar_direccion",
+                kwargs={"pk": direccion.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        self.assertFalse(
+            Direccion.objects.filter(
+                pk=direccion.pk
+            ).exists()
+        )
+        
+    def test_eliminar_direccion_de_otro_cliente_lanza_404(self):
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa de otro cliente",
+            direccion="Carrera 80 # 50-60",
+            ciudad="Bogotá",
+            departamento="Cundinamarca",
+            codigo_postal="110001",
+            es_principal=True,
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "clientes:eliminar_direccion",
+                kwargs={"pk": direccion.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+        
+        self.assertTrue(
+            Direccion.objects.filter(
+                pk=direccion.pk
+            ).exists()
+        )
