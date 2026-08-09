@@ -253,3 +253,86 @@ class DireccionViewTestCase(BaseTestCase):
             response.context["direccion"],
             direccion,
         )
+        
+    def test_obtener_direccion_de_otro_cliente_lanza_404(self):
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa de otro cliente",
+            direccion="Carrera 80 # 50-60",
+            ciudad="Bogotá",
+            departamento="Cundinamarca",
+            codigo_postal="110001",
+            es_principal=True,
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse(
+                "clientes:detalle_direccion",
+                kwargs={"pk": direccion.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+        
+    def test_actualizar_direccion_del_cliente(self):
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Carrera 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "clientes:editar_direccion",
+                kwargs={"pk": direccion.pk},
+            ),
+            data={
+                "nombre": "Casa actualizada",
+                "direccion": "Carrera 20 # 30-40",
+                "ciudad": "Medellín",
+                "departamento": "Antioquia",
+                "codigo_postal": "050002",
+                "es_principal": True,
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        direccion.refresh_from_db()
+        
+        self.assertEqual(
+            direccion.nombre,
+            "Casa actualizada",
+        )
+        
+        self.assertEqual(
+            direccion.direccion,
+            "Carrera 20 # 30-40",
+        )
+        
+        self.assertEqual(
+            direccion.codigo_postal,
+            "050002",
+        )
