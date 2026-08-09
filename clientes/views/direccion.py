@@ -7,6 +7,15 @@ from clientes.selectors import obtener_cliente
 from clientes.services import crear_direccion as crear_direccion_service
 
 class CrearDireccionView(LoginRequiredMixin, View):
+    
+    def get(self, request):
+        form = DireccionForm()
+        
+        return render(
+            request,
+            "clientes/direcciones/form.html",
+            {"form": form}
+        )
         
     def post(self, request):
         form = DireccionForm(request.POST)
@@ -21,6 +30,10 @@ class CrearDireccionView(LoginRequiredMixin, View):
             
             return redirect("clientes:crear_direccion")
         
-        return redirect("clientes:crear_direccion")
+        return render(
+            request,
+            "clientes/direcciones/form.html",
+            {"form": form},
+        )
         
 crear_direccion = CrearDireccionView.as_view()
