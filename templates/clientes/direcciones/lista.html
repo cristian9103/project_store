@@ -1,9 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}
+Mis direcciones
+{% endblock %}
+
+{% block content %}
+
+<h1>Mis direcciones</h1>
+
+<a href="{% url 'clientes:crear_direccion' %}">Agregar dirección</a>
+
+{% if direcciones %}
+
 {% for direccion in direcciones %}
-    <div>
-        <strong>{{ direccion.nombre }}</strong>
-        <p>{{ direccion.direccion }}</p>
-        <p>{{ direccion.ciudad }}, {{ direccion.departamento }}</p>
-    </div>
-{% empty %}
-    <p>No tienes direcciones registradas.</p>
+
+    <article>
+        <h2>{{ direccion.nombre }}</h2>
+
+        {% if direccion.es_principal %}
+            <strong>Dirección principal</strong>
+        {% endif %}
+
+        <p>
+            {{ direccion.direccion }}
+        </p>
+
+        <p>
+            {{ direccion.ciudad }},
+            {{ direccion.departamento }}
+        </p>
+
+        {% if direccion.codigo_postal %}
+            <p>
+                Código postal: {{ direccion.codigo_postal }}
+            </p>
+        {% endif %}
+
+        <a href="{% url 'clientes:editar_direccion' pk=direccion.pk %}">
+            Editar
+        </a>
+
+        <form 
+            action="{% url 'clientes:eliminar_direccion' pk=direccion.pk %}" 
+            method="post"
+        >
+            {% csrf_token %}
+
+            <button type="submit">
+                Eliminar
+            </button>
+        </form>
+    </article>
+
 {% endfor %}
+
+{% else %}
+
+<p>No tienes direcciones registradas.</p>
+
+{% endif %}
+
+{% endblock %}
