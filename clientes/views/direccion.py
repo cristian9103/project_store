@@ -3,7 +3,10 @@ from django.shortcuts import redirect, render
 from django.views import View
 
 from clientes.forms import DireccionForm
-from clientes.selectors import obtener_cliente
+from clientes.selectors import (
+    obtener_cliente,
+    listar_direcciones
+)
 from clientes.services import crear_direccion as crear_direccion_service
 
 class CrearDireccionView(LoginRequiredMixin, View):
@@ -36,4 +39,20 @@ class CrearDireccionView(LoginRequiredMixin, View):
             {"form": form},
         )
         
+class ListaDireccionesView(LoginRequiredMixin, View):
+    
+    def get(self, request):
+        cliente = obtener_cliente(request.user)
+        
+        direcciones = listar_direcciones(cliente)
+        
+        return render(
+            request,
+            "clientes/direcciones/lista.html",
+            {
+                "direcciones": direcciones,
+            },
+        )
+        
 crear_direccion = CrearDireccionView.as_view()
+lista_direcciones = ListaDireccionesView.as_view()

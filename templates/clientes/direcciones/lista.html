@@ -1,0 +1,9 @@
+{% for direccion in direcciones %}
+    <div>
+        <strong>{{ direccion.nombre }}</strong>
+        <p>{{ direccion.direccion }}</p>
+        <p>{{ direccion.ciudad }}, {{ direccion.departamento }}</p>
+    </div>
+{% empty %}
+    <p>No tienes direcciones registradas.</p>
+{% endfor %}
