@@ -135,8 +135,25 @@ class EditarDireccionView(LoginRequiredMixin, View):
             },
         )
         
+class EliminarDireccionView(LoginRequiredMixin, View):
+    
+    def post(self, request, pk):
+        cliente = obtener_cliente(request.user)
+        
+        direccion = obtener_direccion(
+            direccion_id=pk,
+            cliente=cliente
+        )
+        
+        direccion.delete()
+        
+        return redirect(
+            "clientes:lista_direcciones",
+        )
+        
         
 crear_direccion = CrearDireccionView.as_view()
 lista_direcciones = ListaDireccionesView.as_view()
 detalle_direccion = DetalleDireccionView.as_view()
 editar_direccion = EditarDireccionView.as_view()
+eliminar_direccion = EliminarDireccionView.as_view()

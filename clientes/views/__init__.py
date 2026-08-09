@@ -3,4 +3,5 @@ from .direccion import (
     lista_direcciones,
     detalle_direccion,
     editar_direccion,
+    eliminar_direccion,
 )
