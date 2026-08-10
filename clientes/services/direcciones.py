@@ -77,6 +77,11 @@ def actualizar_direccion(
     direccion.departamento = departamento
     direccion.codigo_postal = codigo_postal
     
+    if es_principal:
+        establecer_principal(direccion)
+    else:
+        direccion.es_principal = False
+    
     direccion.save(
         update_fields=[
             "nombre",
@@ -84,11 +89,9 @@ def actualizar_direccion(
             "ciudad",
             "departamento",
             "codigo_postal",
+            "es_principal",
         ]
     )
-    
-    if es_principal:
-        establecer_principal(direccion)
         
     return direccion
 

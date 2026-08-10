@@ -294,3 +294,97 @@ class DireccionTestCase(BaseTestCase):
             ).exists()
         )
         
+    def test_actualizar_direccion_puede_quitar_principal(self):
+        direccion = crear_direccion(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            es_principal=True,
+        )
+        
+        actualizar_direccion(
+            direccion,
+            nombre="Casa",
+            direccion_texto="Calle 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=False,
+        )
+        
+        direccion.refresh_from_db()
+        
+        self.assertFalse(
+            direccion.es_principal
+        )
+        
+    def test_actualizar_direccion_puede_establecer_principal(self):
+        direccion = crear_direccion(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            es_principal=False,
+        )
+        
+        actualizar_direccion(
+            direccion,
+            nombre="Casa",
+            direccion_texto="Calle 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        direccion.refresh_from_db()
+        
+        self.assertTrue(
+            direccion.es_principal
+        )
+        
+    def test_actualizar_direccion_nueva_principal_desactiva_la_anterior(self):
+        direccion_principal = crear_direccion(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        otra_direccion = crear_direccion(
+            cliente=self.cliente,
+            nombre="Trabajo",
+            direccion="Carrera 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050002",
+            es_principal=False,
+        )
+        
+        actualizar_direccion(
+            otra_direccion,
+            nombre="Trabajo",
+            direccion_texto="Carrera 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050002",
+            es_principal=True,
+        )
+        
+        direccion_principal.refresh_from_db()
+        otra_direccion.refresh_from_db()
+        
+        self.assertFalse(
+            direccion_principal.es_principal
+        )
+        
+        self.assertTrue(
+            otra_direccion.es_principal
+        )
+        
