@@ -16,6 +16,15 @@ class Pedido(BaseModel):
         on_delete=models.PROTECT,
         related_name="pedidos"
     )
+    
+    direccion_envio = models.ForeignKey(
+        "clientes.Direccion",
+        on_delete=models.PROTECT,
+        related_name="pedidos",
+        null=True,
+        blank=True,
+    )
+    
     fecha = models.DateTimeField(auto_now_add=True)
     
     estado = models.CharField(
