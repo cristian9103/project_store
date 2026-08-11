@@ -1,6 +1,10 @@
 from .base import BaseTestCase
 from decimal import Decimal
-from pedidos.services import crear_pedido, confirmar_pedido
+from pedidos.services import (
+    crear_pedido, 
+    confirmar_pedido,
+    asignar_direccion_pedido,
+)
 from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.exceptions import (
     StockInsuficienteError,
@@ -512,3 +516,26 @@ class PedidosTestCase(BaseTestCase):
         
         with self.assertRaises(DireccionPedidoInvalidaError):
             confirmar_pedido(self.pedido)
+
+    def test_asignar_direccion_pedido_asigna_direccion_del_cliente(self):
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        asignar_direccion_pedido(
+            pedido=self.pedido,
+            direccion=direccion,
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.direccion_envio,
+            direccion,
+        )
