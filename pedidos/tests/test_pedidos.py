@@ -5,9 +5,11 @@ from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.exceptions import (
     StockInsuficienteError,
     EstadoPedidoInvalidoError,
-    PedidoVacioError
+    PedidoVacioError,
+    PedidoSinDireccionError,
 )
 from catalogo.models import Producto
+from clientes.models import Direccion
 
 class PedidosTestCase(BaseTestCase):
     
@@ -78,6 +80,18 @@ class PedidosTestCase(BaseTestCase):
         
     def test_crear_pedido_crea_nuevo_despues_de_confirmar(self):
         
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        
         self.crear_detalle(
             cantidad=2
         )
@@ -106,6 +120,18 @@ class PedidosTestCase(BaseTestCase):
     #-----------------------------------------
     def test_confirmar_pedido_lanza_error_si_esta_vacio(self):
         
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        
         # Act + Assert
         with self.assertRaises(PedidoVacioError):
             confirmar_pedido(self.pedido)
@@ -113,6 +139,18 @@ class PedidosTestCase(BaseTestCase):
     def test_confirmar_pedido_lanza_error_si_no_hay_stock(self):
         
         # Arrange
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        
         self.crear_detalle(cantidad=25)
         
         # Act + Assert
@@ -129,6 +167,18 @@ class PedidosTestCase(BaseTestCase):
     def test_confirmar_pedido_lanza_error_si_estado_no_es_pendiente(self):
         
         # Arrange
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        
         self.crear_detalle(cantidad=2)
         
         self.pedido.estado = EstadoPedido.CANCELADO
@@ -149,6 +199,18 @@ class PedidosTestCase(BaseTestCase):
     
     def test_confirmar_pedido_actualiza_estado(self):
         
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        
         # Arrange
         self.crear_detalle(cantidad=2)
         
@@ -166,6 +228,18 @@ class PedidosTestCase(BaseTestCase):
     def test_confirmar_pedido_descuenta_stock(self):
         
         # Arrange
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        
         cantidad = 3
         
         self.crear_detalle(
@@ -188,6 +262,18 @@ class PedidosTestCase(BaseTestCase):
     def test_confirmar_pedido_actualiza_totales(self):
         
         # Arrange
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        
         self.crear_detalle(cantidad=2)
         
         self.pedido.costo_envio = Decimal("8_000.00")
@@ -210,6 +296,18 @@ class PedidosTestCase(BaseTestCase):
         )
 
     def test_confirmar_pedido_estado_invalido_no_modifica_stock(self):
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
         
         detalle = self.crear_detalle(
             cantidad=2
@@ -261,6 +359,18 @@ class PedidosTestCase(BaseTestCase):
         
     def test_confirmar_pedido_revierte_stock_si_falla(self):
         
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        
         producto_2 = Producto.objects.create(
             categoria=self.categoria,
             marca=self.marca,
@@ -308,6 +418,18 @@ class PedidosTestCase(BaseTestCase):
         
     def test_confirmar_pedido_fallido_no_modifica_datos_del_pedido(self):
         
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        
         self.crear_detalle(
             cantidad=21
         )
@@ -335,3 +457,9 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.total,
             total_original
         )
+        
+    def test_confirmar_pedido_sin_direccion_lanza_error(self):
+        self.crear_detalle()
+        
+        with self.assertRaises(PedidoSinDireccionError):
+            confirmar_pedido(self.pedido)

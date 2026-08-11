@@ -10,6 +10,7 @@ from pedidos.exceptions import (
     PedidoVacioError,
     EstadoPedidoInvalidoError,
     StockInsuficienteError,
+    PedidoSinDireccionError,
 )
 
 class ConfirmarPedidoView(LoginRequiredMixin, View):
@@ -32,6 +33,7 @@ class ConfirmarPedidoView(LoginRequiredMixin, View):
             PedidoVacioError,
             EstadoPedidoInvalidoError,
             StockInsuficienteError,
+            PedidoSinDireccionError,
         ) as error:
             messages.error(
                 request,

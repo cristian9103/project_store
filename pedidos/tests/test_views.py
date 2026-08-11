@@ -1,6 +1,8 @@
 from django.urls import reverse
 from django.contrib.messages import get_messages
 
+from clientes.models import Direccion
+
 from .base import BaseTestCase
 from clientes.models import Cliente
 from usuarios.models import Usuario
@@ -421,6 +423,21 @@ class ConfirmarPedidoViewTest(BaseTestCase):
     
     def test_confirmar_pedido_correctamente(self):
         
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"]
+        )
+        
         detalle = self.crear_detalle(
             cantidad=2
         )
@@ -453,6 +470,21 @@ class ConfirmarPedidoViewTest(BaseTestCase):
         )
     
     def test_confirmar_pedido_requiere_autenticacion(self):
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"]
+        )
         
         detalle = self.crear_detalle(
             cantidad=2
@@ -499,6 +531,21 @@ class ConfirmarPedidoViewTest(BaseTestCase):
         
     def test_confirmar_pedido_stock_insuficiente(self):
         
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"]
+        )
+        
         cantidad = self.producto.stock + 1
         
         detalle = self.crear_detalle(
@@ -539,6 +586,21 @@ class ConfirmarPedidoViewTest(BaseTestCase):
         )
         
     def test_confirmar_pedido_ya_confirmado_no_descuenta_stock(self):
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"]
+        )
         
         detalle = self.crear_detalle(
             cantidad=2

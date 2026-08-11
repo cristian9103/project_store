@@ -9,3 +9,7 @@ class PedidoVacioError(PedidoError):
 class EstadoPedidoInvalidoError(PedidoError):
     """El pedido no se encuentra en estado pendiente"""
     pass
+
+class PedidoSinDireccionError(PedidoError):
+    """El pedido necesita una dirección de envío"""
+    pass

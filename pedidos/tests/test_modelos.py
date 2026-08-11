@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.db import IntegrityError, transaction
+from django.db.models import ProtectedError
 
 from .base import BaseTestCase
 from pedidos.models import (
@@ -8,6 +9,7 @@ from pedidos.models import (
     Pedido,
     EstadoPedido,
 )
+from clientes.models import Direccion
 from pedidos.services import ZERO
 
 class ModelosTestCase(BaseTestCase):
@@ -162,3 +164,48 @@ class ModelosTestCase(BaseTestCase):
             ).count(),
             2
         )
+        
+    def test_pedido_puede_crearse_sin_direccion_envio(self):
+        self.assertIsNone(
+            self.pedido.direccion_envio
+        )
+        
+    def test_pedido_puede_tener_direccion_envio(self):
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"]
+        )
+        
+        self.assertEqual(
+            self.pedido.direccion_envio,
+            direccion
+        )
+        
+    def test_no_se_puede_eliminar_direccion_usada_por_pedido(self):
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"]
+        )
+        
+        with self.assertRaises(ProtectedError):
+            direccion.delete()

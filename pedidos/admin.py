@@ -7,7 +7,7 @@ from pedidos.models.pedidos import Pedido
 class PedidoAdmin(admin.ModelAdmin):
     list_display = (
         "cliente",
-        "direccion_envio"
+        "direccion_envio",
         "fecha",
         "estado",
         "subtotal",

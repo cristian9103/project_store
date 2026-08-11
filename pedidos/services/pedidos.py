@@ -1,7 +1,11 @@
 from pedidos.models.pedidos import Pedido, EstadoPedido
 from .calculos import ZERO, actualizar_totales
 from .stock import validar_stock, descontar_stock
-from pedidos.exceptions import PedidoVacioError, EstadoPedidoInvalidoError
+from pedidos.exceptions import (
+    PedidoVacioError, 
+    EstadoPedidoInvalidoError,
+    PedidoSinDireccionError,
+)
 
 from django.db import transaction, IntegrityError
 
@@ -48,6 +52,11 @@ def confirmar_pedido(pedido):
         if pedido.estado != EstadoPedido.PENDIENTE:
             raise EstadoPedidoInvalidoError(
                 "Solo los pedidos pendientes pueden confirmarse."
+            )
+            
+        if pedido.direccion_envio is None:
+            raise PedidoSinDireccionError(
+                "El pedido necesita una dirección de envío."
             )
         
         detalles = list(
