@@ -582,3 +582,56 @@ class PedidosTestCase(BaseTestCase):
                 pedido=self.pedido,
                 direccion=direccion,
             )
+            
+    def test_confirmar_pedido_con_direccion_conserva_direccion(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        confirmar_pedido(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.direccion_envio_id,
+            direccion.pk,
+        )
+        
+    def test_confirmar_pedido_conserva_direccion_seleccionada(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        confirmar_pedido(self.pedido)
+        
+        direccion.direccion = "Carrera 50 # 80-90"
+        direccion.save(update_fields=["direccion"])
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.direccion_envio_id,
+            direccion.pk
+        )
