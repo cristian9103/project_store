@@ -4,6 +4,7 @@ from pedidos.services import (
     crear_pedido, 
     confirmar_pedido,
     asignar_direccion_pedido,
+    ZERO,
 )
 from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.exceptions import (
@@ -15,6 +16,9 @@ from pedidos.exceptions import (
 )
 from catalogo.models import Producto
 from clientes.models import Direccion, Cliente
+from clientes.services import eliminar_direccion
+
+from django.db.models import ProtectedError
 
 class PedidosTestCase(BaseTestCase):
     
@@ -635,3 +639,22 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.direccion_envio_id,
             direccion.pk
         )
+        
+    def test_no_se_puede_eliminar_direccion_usada_por_pedido(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        with self.assertRaises(ProtectedError):
+            direccion.delete()
