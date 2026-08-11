@@ -15,6 +15,7 @@ from .carrito import (
 from .pedidos import (
     crear_pedido,
     confirmar_pedido,
+    asignar_direccion_pedido,
 )
 
 from .stock import (

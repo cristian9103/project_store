@@ -103,3 +103,17 @@ def confirmar_pedido(pedido):
         )
         
         return pedido
+    
+def asignar_direccion_pedido(pedido, direccion):
+    if direccion.cliente_id != pedido.cliente_id:
+        raise DireccionPedidoInvalidaError(
+            "La dirección no pertenece al cliente del pedido."
+        )
+        
+    pedido.direccion_envio = direccion
+    
+    pedido.save(
+        update_fields=["direccion_envio"]
+    )
+    
+    return pedido
