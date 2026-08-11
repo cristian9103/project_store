@@ -539,3 +539,46 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.direccion_envio,
             direccion,
         )
+        
+    def test_asignar_direccion_pedido_de_otro_cliente_lanza_error(self):
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="300986432"
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa",
+            direccion="Calle 50 # 10-20",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050002",
+            es_principal=True,
+        )
+        
+        with self.assertRaises(DireccionPedidoInvalidaError):
+            asignar_direccion_pedido(
+                pedido=self.pedido,
+                direccion=direccion,
+            )
+            
+    def test_asignar_direccion_pedido_no_pendiente_lanza_error(self):
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save(update_fields=["estado"])
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            asignar_direccion_pedido(
+                pedido=self.pedido,
+                direccion=direccion,
+            )
