@@ -13,3 +13,6 @@ class EstadoPedidoInvalidoError(PedidoError):
 class PedidoSinDireccionError(PedidoError):
     """El pedido necesita una dirección de envío"""
     pass
+
+class DireccionPedidoInvalidaError(PedidoError):
+    pass

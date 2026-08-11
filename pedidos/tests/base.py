@@ -17,6 +17,13 @@ class BaseTestCase(TestCase):
             last_name="Ramirez",
         )
         
+        self.otro_usuario = Usuario.objects.create_user(
+            email="otro_cliente@test.com",
+            password="1234567899",
+            first_name="Camilo",
+            last_name="Ramirez",
+        )
+        
         self.cliente = Cliente.objects.create(
             usuario=self.usuario,
             documento="123456789",

@@ -5,6 +5,7 @@ from pedidos.exceptions import (
     PedidoVacioError, 
     EstadoPedidoInvalidoError,
     PedidoSinDireccionError,
+    DireccionPedidoInvalidaError,
 )
 
 from django.db import transaction, IntegrityError
@@ -57,6 +58,11 @@ def confirmar_pedido(pedido):
         if pedido.direccion_envio is None:
             raise PedidoSinDireccionError(
                 "El pedido necesita una dirección de envío."
+            )
+            
+        if pedido.direccion_envio.cliente_id != pedido.cliente_id:
+            raise DireccionPedidoInvalidaError(
+                "La dirección de envío no pertenece al cliente del pedido."
             )
         
         detalles = list(

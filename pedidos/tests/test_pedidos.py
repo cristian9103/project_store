@@ -7,9 +7,10 @@ from pedidos.exceptions import (
     EstadoPedidoInvalidoError,
     PedidoVacioError,
     PedidoSinDireccionError,
+    DireccionPedidoInvalidaError,
 )
 from catalogo.models import Producto
-from clientes.models import Direccion
+from clientes.models import Direccion, Cliente
 
 class PedidosTestCase(BaseTestCase):
     
@@ -462,4 +463,52 @@ class PedidosTestCase(BaseTestCase):
         self.crear_detalle()
         
         with self.assertRaises(PedidoSinDireccionError):
+            confirmar_pedido(self.pedido)
+            
+    def test_confirmar_pedido_con_direccion_se_confirma(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 #20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pedido = confirmar_pedido(self.pedido)
+        
+        self.assertEqual(
+            pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+    def test_confirmar_pedido_con_direccion_de_otro_cliente_lanza_error(self):
+        self.crear_detalle()
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3117654321",
+        )
+        
+        otra_direccion = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa",
+            direccion="Calle 50 # 60-70",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050002",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = otra_direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        with self.assertRaises(DireccionPedidoInvalidaError):
             confirmar_pedido(self.pedido)
