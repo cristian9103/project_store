@@ -105,6 +105,12 @@ def confirmar_pedido(pedido):
         return pedido
     
 def asignar_direccion_pedido(pedido, direccion):
+    if pedido.estado != EstadoPedido.PENDIENTE:
+        raise EstadoPedidoInvalidoError(
+            "Solo los pedidos pendientes pueden modificar "
+            "su dirección de envío."
+        )
+    
     if direccion.cliente_id != pedido.cliente_id:
         raise DireccionPedidoInvalidaError(
             "La dirección no pertenece al cliente del pedido."
