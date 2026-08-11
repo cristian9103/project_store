@@ -4,7 +4,6 @@ from pedidos.services import (
     crear_pedido, 
     confirmar_pedido,
     asignar_direccion_pedido,
-    ZERO,
 )
 from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.exceptions import (
@@ -16,7 +15,6 @@ from pedidos.exceptions import (
 )
 from catalogo.models import Producto
 from clientes.models import Direccion, Cliente
-from clientes.services import eliminar_direccion
 
 from django.db.models import ProtectedError
 
@@ -658,3 +656,39 @@ class PedidosTestCase(BaseTestCase):
         
         with self.assertRaises(ProtectedError):
             direccion.delete()
+            
+    def test_asignar_direccion_pedido_reemplaza_direccion_anterior(self):
+        direccion_anterior = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+
+        nueva_direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Oficina",
+            direccion="Carrera 50 # 80-90",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050002",
+            es_principal=False,
+        )
+        
+        self.pedido.direccion_envio = direccion_anterior
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        asignar_direccion_pedido(
+            self.pedido,
+            nueva_direccion,
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.direccion_envio_id,
+            nueva_direccion.pk,
+        )

@@ -1,3 +1,5 @@
+from django.db.models import ProtectedError
+
 from clientes.services import (
     crear_direccion, 
     establecer_principal,
@@ -387,4 +389,21 @@ class DireccionTestCase(BaseTestCase):
         self.assertTrue(
             otra_direccion.es_principal
         )
+        
+    def test_eliminar_direccion_usada_por_pedido_lanza_error(self):
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+
+        with self.assertRaises(ProtectedError):
+            eliminar_direccion(direccion)
         
