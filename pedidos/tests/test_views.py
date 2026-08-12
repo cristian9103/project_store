@@ -7,7 +7,7 @@ from .base import BaseTestCase
 from clientes.models import Cliente
 from usuarios.models import Usuario
 from pedidos.models import Pedido, EstadoPedido, DetallePedido
-from pedidos.services import ZERO
+from pedidos.services import ZERO, crear_pedido
 
 class CarritoDetailViewTest(BaseTestCase):
     
@@ -639,4 +639,20 @@ class ConfirmarPedidoViewTest(BaseTestCase):
             DetallePedido.objects.filter(
                 pk=detalle.pk
             ).exists()
+        )
+        
+class CheckoutViewTest(BaseTestCase):
+    
+    def test_checkout_usuario_autenticado_muestra_pedido_pendiente(self):
+        self.client.force_login(self.usuario)
+        
+        crear_pedido(self.cliente)
+        
+        response = self.client.get(
+            reverse("pedidos:checkout")
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
         )

@@ -460,11 +460,14 @@ class DireccionViewTestCase(BaseTestCase):
         )
         
     def test_eliminar_direccion_principal_asigna_otra_principal(self):
+        self.client.force_login(self.usuario)
+        
         principal = self.crear_direccion(
             nombre="Casa",
             direccion="Cra 10",
             ciudad="Medellín",
             departamento="Antioquia",
+            es_principal=True
         )
 
         secundaria = self.crear_direccion(
