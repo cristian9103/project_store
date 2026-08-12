@@ -656,3 +656,79 @@ class CheckoutViewTest(BaseTestCase):
             response.status_code,
             200,
         )
+        
+    def test_checkout_muestra_las_direcciones_del_cliente(self):
+        self.client.force_login(self.usuario)
+        
+        crear_pedido(self.cliente)
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:checkout")
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertIn(
+            direccion,
+            response.context["direcciones"],
+        )
+        
+    def test_checkout_no_muestra_direcciones_de_otro_cliente(self):
+        self.client.force_login(self.usuario)
+        
+        crear_pedido(self.cliente)
+        
+        direccion_cliente = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+        
+        direccion_otro_cliente = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa",
+            direccion="Calle 50 # 60-70",
+            ciudad="Bogotá",
+            departamento="Cundinamarca",
+            codigo_postal="110001",
+            es_principal=True,
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:checkout")
+        )
+        
+        direcciones = response.context["direcciones"]
+        
+        self.assertIn(
+            direccion_cliente,
+            direcciones,
+        )
+        
+        self.assertNotIn(
+            direccion_otro_cliente,
+            direcciones,
+        )
