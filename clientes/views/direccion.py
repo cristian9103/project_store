@@ -11,6 +11,7 @@ from clientes.selectors import (
 from clientes.services import (
     crear_direccion as crear_direccion_service,
     actualizar_direccion,
+    eliminar_direccion as eliminar_direccion_service,
 )
 
 class CrearDireccionView(LoginRequiredMixin, View):
@@ -145,7 +146,7 @@ class EliminarDireccionView(LoginRequiredMixin, View):
             cliente=cliente
         )
         
-        direccion.delete()
+        eliminar_direccion_service(direccion)
         
         return redirect(
             "clientes:lista_direcciones",

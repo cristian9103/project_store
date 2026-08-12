@@ -458,3 +458,42 @@ class DireccionViewTestCase(BaseTestCase):
                 pk=direccion.pk
             ).exists()
         )
+        
+    def test_eliminar_direccion_principal_asigna_otra_principal(self):
+        principal = self.crear_direccion(
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+
+        secundaria = self.crear_direccion(
+            nombre="Oficina",
+            direccion="Cra 50",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        response = self.client.post(
+            reverse(
+                "clientes:eliminar_direccion",
+                kwargs={"pk": principal.pk}
+            )
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("clientes:lista_direcciones"),
+        )
+        
+        secundaria.refresh_from_db()
+        
+        self.assertTrue(
+            secundaria.es_principal
+        )
+        
+        self.assertFalse(
+            Direccion.objects.filter(
+                pk=principal.pk
+            ).exists()
+        )
