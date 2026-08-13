@@ -48,4 +48,5 @@ class CheckoutView(LoginRequiredMixin, View):
         
         return redirect("pedidos:checkout")
 
+
 checkout = CheckoutView.as_view()

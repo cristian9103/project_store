@@ -826,3 +826,59 @@ class CheckoutViewTest(BaseTestCase):
         self.assertIsNone(
             pedido.direccion_envio_id,
         )
+        
+    def test_checkout_sin_direccion_no_asigna_direccion(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        self.crear_detalle()
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {}
+        )
+        
+        pedido.refresh_from_db()
+        
+        self.assertIsNone(
+            pedido.direccion_envio_id,
+        )
+        
+    def test_checkout_muestra_direccion_de_envio_seleccionada(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "direccion_id": direccion.pk,
+            },
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:checkout"),
+        )
+        
+        pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pedido.direccion_envio_id,
+            direccion.pk,
+        )
+        
+        self.assertEqual(
+            response.context["pedido"].direccion_envio_id,
+            direccion.pk,
+        )
