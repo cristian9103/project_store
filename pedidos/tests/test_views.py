@@ -732,3 +732,33 @@ class CheckoutViewTest(BaseTestCase):
             direccion_otro_cliente,
             direcciones,
         )
+        
+    def test_checkout_post_asigna_direccion_al_pedido(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "direccion_id": direccion.pk,
+            },
+        )
+        
+        pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pedido.direccion_envio_id,
+            direccion.pk,
+        )
