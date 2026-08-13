@@ -882,3 +882,38 @@ class CheckoutViewTest(BaseTestCase):
             response.context["pedido"].direccion_envio_id,
             direccion.pk,
         )
+        
+    def test_checkout_pedido_con_direccion_seleccionada_la_conserva(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        pedido.direccion_envio = direccion
+        pedido.save(update_fields=["direccion_envio"])
+        
+        response = self.client.get(
+            reverse("pedidos:checkout")
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        pedido_contexto = response.context["pedido"]
+        
+        self.assertEqual(
+            pedido_contexto.direccion_envio_id,
+            direccion.pk,
+        )
