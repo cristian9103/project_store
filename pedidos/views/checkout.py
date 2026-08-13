@@ -11,6 +11,7 @@ from pedidos.services import (
     crear_pedido,
     asignar_direccion_pedido,
 )
+from pedidos.forms import CheckoutForm
 
 class CheckoutView(LoginRequiredMixin, View):
     
