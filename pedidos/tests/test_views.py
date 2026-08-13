@@ -1,13 +1,12 @@
 from django.urls import reverse
 from django.contrib.messages import get_messages
 
-from clientes.models import Direccion
-
 from .base import BaseTestCase
-from clientes.models import Cliente
+from clientes.models import Cliente, Direccion
 from usuarios.models import Usuario
 from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.services import ZERO, crear_pedido
+from clientes.selectors import obtener_direccion
 
 class CarritoDetailViewTest(BaseTestCase):
     
@@ -761,4 +760,69 @@ class CheckoutViewTest(BaseTestCase):
         self.assertEqual(
             pedido.direccion_envio_id,
             direccion.pk,
+        )
+        
+    def test_checkout_no_puede_asignar_direccion_de_otro_cliente(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        self.crear_detalle()
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa",
+            direccion="Calle 50 # 60-70",
+            ciudad="Bogotá",
+            departamento="Cundinamarca",
+            codigo_postal="110001",
+            es_principal=True,
+        )
+        
+        response = self.client.post(
+            
+            reverse("pedidos:checkout"),
+            {
+                "direccion_id": direccion.pk,
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+        
+        pedido.refresh_from_db()
+        
+        self.assertIsNone(
+            pedido.direccion_envio_id,
+        )
+        
+    def test_checkout_con_direccion_inexistente_lanza_404(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        self.crear_detalle()
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "direccion_id": 99999,
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+        
+        pedido.refresh_from_db()
+        
+        self.assertIsNone(
+            pedido.direccion_envio_id,
         )
