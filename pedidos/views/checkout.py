@@ -2,8 +2,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.views import View
 
-from pedidos.forms import CheckoutForm
-
 from clientes.selectors import (
     obtener_cliente, 
     listar_direcciones,
@@ -12,8 +10,10 @@ from clientes.selectors import (
 from pedidos.services import (
     crear_pedido,
     asignar_direccion_pedido,
+    confirmar_pedido,
 )
 from pedidos.forms import CheckoutForm
+from pedidos.exceptions import PedidoSinDireccionError
 
 class CheckoutView(LoginRequiredMixin, View):
     
@@ -39,6 +39,13 @@ class CheckoutView(LoginRequiredMixin, View):
         cliente = obtener_cliente(request.user)
         
         pedido = crear_pedido(cliente)
+        
+        accion = request.POST.get("accion")
+        
+        if accion == "confirmar":
+            confirmar_pedido(pedido)
+            
+            return redirect("pedidos:checkout")
         
         form = CheckoutForm(request.POST)
         

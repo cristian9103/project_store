@@ -965,3 +965,71 @@ class CheckoutViewTest(BaseTestCase):
             response,
             "Selecciona una dirección de envío."
         )
+        
+    def test_checkout_post_confirma_pedido_con_direccion(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        pedido.direccion_envio = direccion
+        pedido.save(update_fields=["direccion_envio"])
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "accion": "confirmar",
+            },
+        )
+        
+        pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+        self.assertEqual(
+            pedido.direccion_envio_id,
+            direccion.pk,
+        )
+        
+    def test_checkout_confirmar_sin_direccion_muestra_error(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        self.crear_detalle()
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "accion": "confirmar",
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertContains(
+            response,
+            "El pedido necesita una dirección de envío.",
+        )
+        
+        pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
