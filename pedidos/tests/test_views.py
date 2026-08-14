@@ -944,3 +944,24 @@ class CheckoutViewTest(BaseTestCase):
             "direccion_id",
             form.errors,
         )
+        
+    def test_checkout_sin_direccion_muestra_error_en_html(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        self.crear_detalle()
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {},
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertContains(
+            response,
+            "Selecciona una dirección de envío."
+        )
