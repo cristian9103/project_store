@@ -917,3 +917,30 @@ class CheckoutViewTest(BaseTestCase):
             pedido_contexto.direccion_envio_id,
             direccion.pk,
         )
+        
+    def test_checkout_post_sin_direccion_muestra_error_del_formulario(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        self.crear_detalle()
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {},
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        form = response.context["form"]
+        
+        self.assertFalse(
+            form.is_valid()
+        )
+        
+        self.assertIn(
+            "direccion_id",
+            form.errors,
+        )
