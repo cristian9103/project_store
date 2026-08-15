@@ -8,6 +8,12 @@ Checkout
 
 <h1>Checkout</h1>
 
+{% if error %}
+    <div>
+        {{ error }}
+    </div>
+{% endif %}
+
 <section>
     <h2>Resumen del pedido</h2>
 

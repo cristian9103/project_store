@@ -1033,3 +1033,95 @@ class CheckoutViewTest(BaseTestCase):
             pedido.estado,
             EstadoPedido.PENDIENTE,
         )
+        
+    def test_checkout_confirmar_pedido_vacio_muestra_error(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        pedido.direccion_envio = direccion
+        pedido.save(update_fields=["direccion_envio"])
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "accion": "confirmar",
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertContains(
+            response,
+            "El pedido no tiene productos.",
+        )
+        
+        pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+    def test_checkout_confirmar_stock_insuficiente_muestra_error(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        
+        self.crear_detalle(cantidad=21)
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        pedido.direccion_envio = direccion
+        pedido.save(update_fields=["direccion_envio"])
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "accion": "confirmar",
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertContains(
+            response,
+            "No hay stock suficiente.",
+        )
+        
+        pedido.refresh_from_db()
+        self.producto.refresh_from_db()
+        
+        self.assertEqual(
+            pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+        self.assertEqual(
+            self.producto.stock,
+            20,
+        )

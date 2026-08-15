@@ -13,7 +13,11 @@ from pedidos.services import (
     confirmar_pedido,
 )
 from pedidos.forms import CheckoutForm
-from pedidos.exceptions import PedidoSinDireccionError
+from pedidos.exceptions import (
+    PedidoSinDireccionError,
+    PedidoVacioError,
+    StockInsuficienteError,
+)
 
 class CheckoutView(LoginRequiredMixin, View):
     
@@ -43,7 +47,25 @@ class CheckoutView(LoginRequiredMixin, View):
         accion = request.POST.get("accion")
         
         if accion == "confirmar":
-            confirmar_pedido(pedido)
+            try:
+                confirmar_pedido(pedido)
+                
+            except (
+                PedidoSinDireccionError,
+                PedidoVacioError,
+                StockInsuficienteError,
+            ) as error:
+                
+                return render(
+                    request,
+                    "pedidos/checkout/checkout.html",
+                    {
+                        "pedido": pedido,
+                        "direcciones": listar_direcciones(cliente),
+                        "form": CheckoutForm(),
+                        "error": str(error),
+                    },
+                )
             
             return redirect("pedidos:checkout")
         
