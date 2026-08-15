@@ -1301,3 +1301,50 @@ class CheckoutViewTest(BaseTestCase):
             response.status_code,
             404,
         )
+        
+    def test_checkout_no_puede_confirmar_pedido_de_otro_cliente(self):
+        self.client.force_login(self.usuario)
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987321654",
+            telefono="3217894561",
+        )
+        
+        otro_pedido = crear_pedido(otro_cliente)
+        
+        DetallePedido.objects.create(
+            pedido=otro_pedido,
+            producto=self.producto,
+            precio_unitario=Decimal("20_000.00"),
+            cantidad=1,
+            subtotal=Decimal("20_000.00"),
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa",
+            direccion="Calle 20",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050002",
+            es_principal=True,
+        )
+        
+        otro_pedido.direccion_envio = direccion
+        otro_pedido.save(update_fields=["direccion_envio"])
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "accion": "confirmar",
+                "pedido_id": otro_pedido.pk,
+            },
+        )
+        
+        otro_pedido.refresh_from_db()
+        
+        self.assertEqual(
+            otro_pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
