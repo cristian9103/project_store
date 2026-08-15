@@ -15,110 +15,142 @@ Checkout
 {% endif %}
 
 <section>
-    <h2>Resumen del pedido</h2>
+    <h2>Productos</h2>
+
+    <ul>
+        {% for detalle in pedido.detalles_pedido.all %}
+            <li>
+                <strong>
+                    {{ detalle.producto.nombre }}
+                </strong>
+
+                <span>
+                    x {{ detalle.cantidad }}
+                </span>
+
+                <span>
+                    Precio unitario: ${{ detalle.precio_unitario }}
+                </span>
+
+                <span>
+                    Subtotal: ${{ detalle.subototal }}
+                </span>
+            </li>
+        {% empty %}
+            <li>El pedido no tiene productos.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+<section>
+    <h2>Resumen</h2>
 
     <p>
-        Pedido #{{ pedido.pk }}
+        Subtotal: ${{ pedido.subtotal }}
     </p>
 
     <p>
-        Subtotal:
-        {{ pedido.subtotal }}
+        Costo de envío: ${{ pedido.costo_envio }}
     </p>
 
     <p>
-        Costo de envío:
-        {{ pedido.costo_envio }}
+        Descuento: ${{ pedido.descuento }}
     </p>
 
     <p>
-        Descuento:
-        {{ pedido.descuento }}
-    </p>
-
-    <p>
-        Total:
-        {{ pedido.total }}
+        <strong>
+            Total: ${{ pedido.total }}
+        </strong>
     </p>
 </section>
 
 <section>
     <h2>Dirección de envío</h2>
 
+    {% if form.errors %}
+        <div>
+            {{ form.direccion_id.errors }}
+        </div>
+    {% endif %}
+
     <form method="post">
 
         {% csrf_token %}
 
-        {% if form.direccion_id.errors %}
+        {% for direccion in direcciones %}
+
             <div>
-                {{ form.direccion_id.errors }}
+                <label>
+                    <input 
+                        type="radio" 
+                        name="direccion_id"
+                        value="{{ direccion.pk }}"
+                        {% if pedido.direccion_envio_id == direccion.pk %}
+                            checked
+                        {% endif %}
+                    >
+
+                    <strong>
+                        {{ direccion.nombre }}
+                    </strong>
+
+                    <br>
+
+                    {{ direccion.direccion }}
+
+                    <br>
+
+                    {{ direccion.ciudad }}, {{ direccion.departamento }}
+
+                    {% if direccion.codigo_postal %}
+                        <br>
+                        Código postal:
+                        {{ direccion.codigo_postal}}
+                    {% endif %}
+
+                    {% if direccion.es_principal %}
+                        <br>
+                        <strong>Dirección principal</strong>
+                    {% endif %}
+
+                </label>
             </div>
-        {% endif %}
+        {% empty %}
+            <p>No tienes direcciones registradas.</p>
+        {% endfor %}
 
-        {% if direcciones %}
+        <input 
+            type="hidden"
+            name="accion"
+            value="asignar_direccion"
+        >
 
-            {% for direccion in direcciones %}
+        <button type="submit">
+            Seleccionar dirección
+        </button>
+    </form>
+</section>
 
-                <div>
-                    <label>
-                        <input 
-                            type="radio" 
-                            name="direccion_id"
-                            value="{{ direccion.pk }}"
-                            {% if pedido.direccion_envio_id == direccion.pk %}
-                                checked
-                            {% endif %}
-                        >
+<section>
+    <h2>Confirmar pedido</h2>
 
-                        <strong>
-                            {{ direccion.nombre }}
-                        </strong>
+    {% if error %}
+        <div>
+            <p>{{ error }}</p>
+        </div>
+    {% endif %}
 
-                        <br>
+    <form method="post">
+        {% csrf_token %}
 
-                        {{ direccion.direccion }}
-
-                        <br>
-
-                        {{ direccion.ciudad }}
-                        {{ direccion.departamento }}
-
-                        {% if direccion.codigo_postal %}
-                            <br>
-                            Código postal:
-                            {{ direccion.codigo_postal}}
-                        {% endif %}
-
-                        {% if direccion.es_principal %}
-                            <br>
-                            <strong>Dirección principal</strong>
-                        {% endif %}
-
-                    </label>
-                </div>
-
-                <hr>
-
-            {% endfor %}
-
-        {% else %}
-
-            <p>
-                No tienes direcciones registradas.
-            </p>
-
-            <a href="{% url 'clientes:crear_direccion' %}">
-                Agregar una dirección
-            </a>
-
-        {% endif %}
-
-        {% if direcciones %}
-            <button type="submit">
-                Continuar
-            </button>
-        {% endif %}
-
+        <input 
+            type="hidden" 
+            name="accion"
+            value="confirmar"
+        >
+        <button type="submit">
+            Confirmar pedido
+        </button>
     </form>
 </section>
 

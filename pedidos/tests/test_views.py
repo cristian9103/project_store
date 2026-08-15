@@ -1348,3 +1348,50 @@ class CheckoutViewTest(BaseTestCase):
             otro_pedido.estado,
             EstadoPedido.PENDIENTE,
         )
+        
+    def test_checkout_muestra_datos_de_direccion_en_html(self):
+        self.client.force_login(self.usuario)
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:checkout")
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertContains(
+            response,
+            "Casa",
+        )
+        
+        self.assertContains(
+            response,
+            "Calle 10 # 20-30"
+        )
+        
+        self.assertContains(
+            response,
+            "Medellín"
+        )
+        
+        self.assertContains(
+            response,
+            "Antioquia",
+        )
+        
+        self.assertContains(
+            response,
+            "050001",
+        )
