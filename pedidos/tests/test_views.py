@@ -1395,3 +1395,20 @@ class CheckoutViewTest(BaseTestCase):
             response,
             "050001",
         )
+        
+    def test_checkout_muestra_boton_confirmar_pedido(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse("pedidos:checkout")
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertContains(
+            response,
+            "Confirmar pedido",
+        )

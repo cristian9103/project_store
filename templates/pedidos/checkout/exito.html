@@ -5,25 +5,114 @@ Pedido confirmado
 {% endblock %}
 
 {% block content %}
-    <h1>Pedido confirmado</h1>
+    <main>
 
-    <p>
-        Tu pedido ha sido confirmado correctamente.
-    </p>
+        <h1>Pedido confirmado</h1>
 
-    <p>
-        Pedido #{{ pedido.pk }}
-    </p>
+        <p>
+            Tu pedido ha sido confirmado correctamente.
+        </p>
 
-    <p>
-        Estado: {{ pedido.get_estado_display }}
-    </p>
+        <p>
+            Número de pedido:
+            <strong>#{{ pedido.pk }}</strong>
+        </p>
 
-    <p>
-        Total: ${{ pedido.total }}
-    </p>
+        <p>
+            Estado:
+            <strong>{{ pedido.get_estado_display }}</strong>
+        </p>
 
-    <a href="{% url 'pedidos:checkout' %}">
-        Volver al checkout
-    </a>
+        <section>
+            <h2>Productos</h2>
+
+            <ul>
+                {% for detalle in pedido.detalles_pedido.all %}
+                    <li>
+                        <strong>
+                            {{ detalle.producto.nombre}}
+                        </strong>
+
+                        <span>
+                            x {{ detalle.cantidad }}
+                        </span>
+
+                        <span>
+                            ${{ detalle.subtotal }}
+                        </span>
+                    </li>
+                {% empty %}
+                    <li>
+                        No hay producto en este pedido.
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <section>
+            <h2>Dirección de envío</h2>
+
+            {% if pedido.direccion_envio %}
+
+                <p>
+                    <strong>
+                        {{ pedido.direccion_envio.nombre }}
+                    </strong>
+                </p>
+
+                <p>
+                    {{ pedido.direccion_envio.direccion }}
+                </p>
+
+                <p>
+                    {{ pedido.direccion_envio.ciudad }},
+                    {{ pedido.direccion_envio.departamento }}
+                </p>
+
+                {% if pedido.direccion_envio.codigo_postal %}
+                    <p>
+                        Código postal:
+                        {{ pedido.direccion_envio.codigo_postal }}
+                    </p>
+                {% endif %}
+
+            {% else %}
+
+                <p>
+                    No hay una dirección de envío asociada.
+                </p>
+
+            {% endif %}
+        </section>
+
+        <section>
+            <h2>Resumen</h2>
+
+            <p>
+                Subtotal:
+                ${{ pedido.subtotal }}
+            </p>
+
+            <p>
+                Envío:
+                ${{ pedido.costo_envio }}
+            </p>
+
+            <p>
+                Descuento:
+                ${{ pedido.descuento }}
+            </p>
+
+            <p>
+                <strong>
+                    Total:
+                    ${{ pedido.total }}
+                </strong>
+            </p>
+        </section>
+
+        <a href="{% url 'pedidos:checkout' %}">
+            Volver al checkout
+        </a>
+    </main>
 {% endblock %}
