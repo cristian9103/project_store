@@ -1,6 +1,8 @@
 from django.urls import reverse
 from django.contrib.messages import get_messages
 
+from decimal import Decimal
+
 from .base import BaseTestCase
 from clientes.models import Cliente, Direccion
 from usuarios.models import Usuario
@@ -1124,4 +1126,127 @@ class CheckoutViewTest(BaseTestCase):
         self.assertEqual(
             self.producto.stock,
             20,
+        )
+        
+    def test_checkout_confirmacion_exitosa_actualiza_todo(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        
+        self.crear_detalle(cantidad=10)
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "direccion_id": direccion.pk,
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "accion": "confirmar",
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        pedido.refresh_from_db()
+        self.producto.refresh_from_db()
+        
+        self.assertEqual(
+            pedido.cliente_id,
+            self.cliente.pk,
+        )
+        
+        self.assertEqual(
+            pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+        self.assertEqual(
+            pedido.direccion_envio_id,
+            direccion.pk,
+        )
+        
+        self.assertEqual(
+            self.producto.stock,
+            10,
+        )
+        
+        self.assertEqual(
+            pedido.subtotal,
+            Decimal("200_000.00"),
+        )
+        
+        self.assertEqual(
+            pedido.total,
+            Decimal("200_000.00"),
+        )
+        
+    def test_checkout_confirmacion_exitosa_redirige_a_exito(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "direccion_id": direccion.pk,
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        response = self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "accion": "confirmar",
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse(
+                "pedidos:checkout_exito",
+                kwargs={"pk": pedido.pk},
+            ),
         )
