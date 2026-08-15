@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.views import View
+from django.views.generic.detail import DetailView
 
 from clientes.selectors import (
     obtener_cliente, 
@@ -18,6 +19,7 @@ from pedidos.exceptions import (
     PedidoVacioError,
     StockInsuficienteError,
 )
+from pedidos.models import Pedido, EstadoPedido
 
 class CheckoutView(LoginRequiredMixin, View):
     
@@ -67,7 +69,10 @@ class CheckoutView(LoginRequiredMixin, View):
                     },
                 )
             
-            return redirect("pedidos:checkout")
+            return redirect(
+                "pedidos:checkout_exito",
+                pk=pedido.pk,
+            )
         
         form = CheckoutForm(request.POST)
         
@@ -95,6 +100,20 @@ class CheckoutView(LoginRequiredMixin, View):
                 "form": form,
             },
         )
+        
+class CheckoutExitoView(LoginRequiredMixin, DetailView):
+    model = Pedido
+    template_name = "pedidos/checkout/exito.html"
+    context_object_name = "pedido"
+    
+    def get_queryset(self):
+        cliente = obtener_cliente(self.request.user)
+        
+        return Pedido.objects.filter(
+            cliente=cliente,
+            estado=EstadoPedido.PREPARACION,
+        )
 
 
 checkout = CheckoutView.as_view()
+checkout_exito = CheckoutExitoView.as_view()

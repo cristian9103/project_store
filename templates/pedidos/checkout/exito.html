@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}
+Pedido confirmado
+{% endblock %}
+
+{% block content %}
+    <h1>Pedido confirmado</h1>
+
+    <p>
+        Tu pedido ha sido confirmado correctamente.
+    </p>
+
+    <p>
+        Pedido #{{ pedido.pk }}
+    </p>
+
+    <p>
+        Estado: {{ pedido.get_estado_display }}
+    </p>
+
+    <p>
+        Total: ${{ pedido.total }}
+    </p>
+
+    <a href="{% url 'pedidos:checkout' %}">
+        Volver al checkout
+    </a>
+{% endblock %}
