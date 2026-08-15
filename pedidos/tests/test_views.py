@@ -1250,3 +1250,54 @@ class CheckoutViewTest(BaseTestCase):
                 kwargs={"pk": pedido.pk},
             ),
         )
+        
+    def test_checkout_exito_muestra_pedido_del_cliente(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = crear_pedido(self.cliente)
+        
+        pedido.estado = EstadoPedido.PREPARACION
+        pedido.save(update_fields={"estado"})
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:checkout_exito",
+                kwargs={"pk": pedido.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertEqual(
+            response.context["pedido"].pk,
+            pedido.pk,
+        )
+        
+    def test_checkout_exito_no_muestra_pedido_de_otro_cliente(self):
+        self.client.force_login(self.usuario)
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987321654",
+            telefono="3217894561",
+        )
+        
+        pedido = crear_pedido(otro_cliente)
+        
+        pedido.estado = EstadoPedido.PREPARACION
+        pedido.save(update_fields=["estado"])
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:checkout_exito",
+                kwargs={"pk": pedido.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
