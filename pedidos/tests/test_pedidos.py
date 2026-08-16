@@ -739,6 +739,19 @@ class PedidosTestCase(BaseTestCase):
     def test_iniciar_pago_pedido_pendiente(self):
         self.crear_detalle()
         
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
         resultado = iniciar_pago(self.pedido)
         
         self.assertEqual(
@@ -769,3 +782,27 @@ class PedidosTestCase(BaseTestCase):
         
         with self.assertRaises(PedidoSinDireccionError):
             iniciar_pago(self.pedido)
+            
+    def test_iniciar_pago_pedido_valido_crea_pago(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        iniciar_pago(self.pedido)
+        
+        self.assertTrue(
+            Pago.object.filter(
+                pedido=self.pedido
+            ).exists()
+        )
