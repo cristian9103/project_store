@@ -8,10 +8,10 @@ class EstadoPago(models.TextChoices):
     RECHAZADO = "RE", "Rechazado"
     
 class Pago(BaseModel):
-    pedido = models.OneToOneField(
+    pedido = models.ForeignKey(
         "pedidos.Pedido",
         on_delete=models.PROTECT,
-        related_name="pago",
+        related_name="pagos",
     )
     
     estado = models.CharField(

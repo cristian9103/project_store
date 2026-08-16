@@ -6,6 +6,7 @@ from pedidos.services import (
     asignar_direccion_pedido,
     obtener_pedido_pendiente,
     iniciar_pago,
+    procesar_pago,
 )
 from pedidos.models import (Pedido, 
     EstadoPedido, 
@@ -868,7 +869,7 @@ class PedidosTestCase(BaseTestCase):
         
         with self.assertRaises(EstadoPagoInvalidoError):
             iniciar_pago(self.pedido)
-            
+           
     def test_iniciar_pago_pedido_con_pago_rechazado_crea_nuevo_pago(self):
         self.crear_detalle()
         
@@ -905,4 +906,46 @@ class PedidosTestCase(BaseTestCase):
         self.assertEqual(
             resultado.estado,
             EstadoPago.PENDIENTE,
+        )
+        
+        self.assertEqual(
+            Pago.objects.filter(
+                pedido=self.pedido
+            ).count(),
+            2,
+        )
+        
+    def test_procesar_pago_pendiente_aprueba_pago(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        resultado = procesar_pago(
+            pago=pago,
+            aprobado=True,
+        )
+        
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            resultado,
+            True,
+        )
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.APROBADO,
         )
