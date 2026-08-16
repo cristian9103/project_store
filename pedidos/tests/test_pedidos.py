@@ -4,6 +4,7 @@ from pedidos.services import (
     crear_pedido, 
     confirmar_pedido,
     asignar_direccion_pedido,
+    obtener_pedido_pendiente,
 )
 from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.exceptions import (
@@ -691,4 +692,45 @@ class PedidosTestCase(BaseTestCase):
         self.assertEqual(
             self.pedido.direccion_envio_id,
             nueva_direccion.pk,
+        )
+        
+    def test_obtener_pedido_pendiente_devuelve_pedido_del_cliente(self):
+        pedido = crear_pedido(self.cliente)
+        
+        resultado = obtener_pedido_pendiente(self.cliente)
+        
+        self.assertEqual(
+            resultado.pk,
+            pedido.pk,
+        )
+        
+    def test_obtener_pedido_pendiente_no_devuelve_pedido_de_otro_cliente(self):
+        self.pedido.delete()
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="7891234578",
+            telefono="3217894878",
+        )
+        
+        crear_pedido(otro_cliente)
+        
+        resultado = obtener_pedido_pendiente(self.cliente)
+        
+        self.assertIsNone(
+            resultado,
+        )
+        
+    def test_obtener_pedido_pendiente_no_devuelve_pedido_no_pendiente(self):
+        self.pedido.delete()
+        
+        pedido = crear_pedido(self.cliente)
+        
+        pedido.estado = EstadoPedido.PREPARACION
+        pedido.save(update_fields=["estado"])
+        
+        resultado = obtener_pedido_pendiente(self.cliente)
+        
+        self.assertIsNone(
+            resultado,
         )
