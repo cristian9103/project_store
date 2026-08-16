@@ -12,6 +12,7 @@ from pedidos.services import (
     crear_pedido,
     asignar_direccion_pedido,
     confirmar_pedido,
+    obtener_pedido_pendiente,
 )
 from pedidos.forms import CheckoutForm
 from pedidos.exceptions import (
@@ -26,7 +27,11 @@ class CheckoutView(LoginRequiredMixin, View):
     def get(self, request):
         cliente = obtener_cliente(request.user)
         
-        pedido = crear_pedido(cliente)
+        pedido = obtener_pedido_pendiente(cliente)
+        
+        if pedido is None:
+            pedido = crear_pedido(cliente)
+            
         direcciones = listar_direcciones(cliente)
         
         form = CheckoutForm()
@@ -44,7 +49,10 @@ class CheckoutView(LoginRequiredMixin, View):
     def post(self, request):
         cliente = obtener_cliente(request.user)
         
-        pedido = crear_pedido(cliente)
+        pedido = obtener_pedido_pendiente(cliente)
+        
+        if pedido is None:
+            pedido = crear_pedido(cliente)
         
         accion = request.POST.get("accion")
         
