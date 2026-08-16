@@ -25,6 +25,13 @@ def iniciar_pago(pedido):
         raise PedidoSinDireccionError(
             "El pedido necesita una dirección de envío."
         )
+        
+    pago = Pago.objects.filter(
+        pedido=pedido,
+    ).first()
+    
+    if pago:
+        return pago
     
     return Pago.objects.create(
         pedido=pedido,
