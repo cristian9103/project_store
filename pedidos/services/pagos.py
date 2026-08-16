@@ -44,3 +44,14 @@ def iniciar_pago(pedido):
         pedido=pedido,
         estado=EstadoPago.PENDIENTE,
     )
+    
+def procesar_pago(pago, aprobado):
+    if pago.estado != EstadoPago.PENDIENTE:
+        raise EstadoPagoInvalidoError(
+            "El pago no está pendiente."
+        )
+        
+    if aprobado:
+        pago.estado = EstadoPago.APROBADO
+        pago.save(update_fields=["estado"])
+        return True
