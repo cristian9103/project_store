@@ -5,6 +5,7 @@ from pedidos.services import (
     confirmar_pedido,
     asignar_direccion_pedido,
     obtener_pedido_pendiente,
+    iniciar_pago,
 )
 from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.exceptions import (
@@ -733,4 +734,12 @@ class PedidosTestCase(BaseTestCase):
         
         self.assertIsNone(
             resultado,
+        )
+        
+    def test_iniciar_pago_pedido_pendiente(self):
+        resultado = iniciar_pago(self.pedido)
+        
+        self.assertEqual(
+            resultado,
+            True,
         )
