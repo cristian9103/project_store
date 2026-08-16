@@ -2,6 +2,7 @@ from pedidos.exceptions import (
     EstadoPedidoInvalidoError,
     PedidoVacioError,
     PedidoSinDireccionError,
+    EstadoPagoInvalidoError,
 )
 from pedidos.models import (
     EstadoPedido,
@@ -31,7 +32,13 @@ def iniciar_pago(pedido):
     ).first()
     
     if pago:
-        return pago
+        if pago.estado == EstadoPago.PENDIENTE:
+            return pago
+        
+        if pago.estado == EstadoPago.APROBADO:
+            raise EstadoPagoInvalidoError(
+                "El pedido ya tiene un pago aprobado."
+            )
     
     return Pago.objects.create(
         pedido=pedido,

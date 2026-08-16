@@ -868,3 +868,41 @@ class PedidosTestCase(BaseTestCase):
         
         with self.assertRaises(EstadoPagoInvalidoError):
             iniciar_pago(self.pedido)
+            
+    def test_iniciar_pago_pedido_con_pago_rechazado_crea_nuevo_pago(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago_rechazado = Pago.objects.create(
+            pedido=self.pedido,
+            estado=EstadoPago.RECHAZADO,
+        )
+        
+        resultado = iniciar_pago(self.pedido)
+        
+        self.assertNotEqual(
+            resultado.pk,
+            pago_rechazado.pk,
+        )
+        
+        self.assertEqual(
+            resultado.pedido,
+            self.pedido,
+        )
+        
+        self.assertEqual(
+            resultado.estado,
+            EstadoPago.PENDIENTE,
+        )
