@@ -23,3 +23,7 @@ from .stock import (
     validar_stock,
     descontar_stock,
 )
+
+from .pagos import (
+    iniciar_pago,
+)

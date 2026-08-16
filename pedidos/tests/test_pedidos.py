@@ -743,3 +743,17 @@ class PedidosTestCase(BaseTestCase):
             resultado,
             True,
         )
+        
+    def test_iniciar_pago_pedido_no_pendiente_lanza_error(self):
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save(update_fields=["estado"])
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            iniciar_pago(self.pedido)
+            
+    def test_iniciar_pago_pedido_cancelado_lanza_error(self):
+        self.pedido.estado = EstadoPedido.CANCELADO
+        self.pedido.save(update_fields=["estado"])
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            iniciar_pago(self.pedido)
