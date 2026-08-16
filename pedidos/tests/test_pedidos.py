@@ -11,6 +11,7 @@ from pedidos.models import (Pedido,
     EstadoPedido, 
     DetallePedido,
     Pago,
+    EstadoPago,
 )
 from pedidos.exceptions import (
     StockInsuficienteError,
@@ -758,9 +759,9 @@ class PedidosTestCase(BaseTestCase):
         
         resultado = iniciar_pago(self.pedido)
         
-        self.assertEqual(
+        self.assertIsInstance(
             resultado,
-            True,
+            Pago,
         )
         
     def test_iniciar_pago_pedido_no_pendiente_lanza_error(self):
@@ -809,4 +810,36 @@ class PedidosTestCase(BaseTestCase):
             Pago.objects.filter(
                 pedido=self.pedido
             ).exists()
+        )
+        
+    def test_iniciar_pago_pedido_con_pago_pendiente_devuelve_pago_existente(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago_original = iniciar_pago(self.pedido)
+        
+        resultado = iniciar_pago(self.pedido)
+        
+        self.assertEqual(
+            resultado.pk,
+            pago_original.pk,
+        )
+        
+        self.assertEqual(
+            Pago.objects.filter(
+                pedido=self.pedido
+            ).count(),
+            1,
         )
