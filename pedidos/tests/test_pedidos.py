@@ -7,7 +7,11 @@ from pedidos.services import (
     obtener_pedido_pendiente,
     iniciar_pago,
 )
-from pedidos.models import Pedido, EstadoPedido, DetallePedido
+from pedidos.models import (Pedido, 
+    EstadoPedido, 
+    DetallePedido,
+    Pago,
+)
 from pedidos.exceptions import (
     StockInsuficienteError,
     EstadoPedidoInvalidoError,
@@ -802,7 +806,7 @@ class PedidosTestCase(BaseTestCase):
         iniciar_pago(self.pedido)
         
         self.assertTrue(
-            Pago.object.filter(
+            Pago.objects.filter(
                 pedido=self.pedido
             ).exists()
         )

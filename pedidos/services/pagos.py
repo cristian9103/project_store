@@ -3,7 +3,11 @@ from pedidos.exceptions import (
     PedidoVacioError,
     PedidoSinDireccionError,
 )
-from pedidos.models import EstadoPedido
+from pedidos.models import (
+    EstadoPedido,
+    EstadoPago,
+    Pago,
+)
 
 
 def iniciar_pago(pedido):
@@ -22,4 +26,7 @@ def iniciar_pago(pedido):
             "El pedido necesita una dirección de envío."
         )
     
-    return True
+    return Pago.objects.create(
+        pedido=pedido,
+        estado=EstadoPago.PENDIENTE,
+    )
