@@ -737,6 +737,8 @@ class PedidosTestCase(BaseTestCase):
         )
         
     def test_iniciar_pago_pedido_pendiente(self):
+        self.crear_detalle()
+        
         resultado = iniciar_pago(self.pedido)
         
         self.assertEqual(
@@ -756,4 +758,14 @@ class PedidosTestCase(BaseTestCase):
         self.pedido.save(update_fields=["estado"])
         
         with self.assertRaises(EstadoPedidoInvalidoError):
+            iniciar_pago(self.pedido)
+            
+    def test_iniciar_pago_pedido_vacio_lanza_error(self):
+        with self.assertRaises(PedidoVacioError):
+            iniciar_pago(self.pedido)
+            
+    def test_iniciar_pago_pedido_sin_direccion_lanza_error(self):
+        self.crear_detalle()
+        
+        with self.assertRaises(PedidoSinDireccionError):
             iniciar_pago(self.pedido)
