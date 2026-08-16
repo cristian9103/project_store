@@ -123,3 +123,12 @@ def asignar_direccion_pedido(pedido, direccion):
     )
     
     return pedido
+
+def obtener_pedido_pendiente(cliente):
+    return (
+        Pedido.objects
+        .filter(
+            cliente=cliente,
+            estado=EstadoPedido.PENDIENTE,
+        ).first()
+    )

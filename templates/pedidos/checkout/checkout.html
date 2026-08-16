@@ -85,6 +85,9 @@ Checkout
                         type="radio" 
                         name="direccion_id"
                         value="{{ direccion.pk }}"
+                        {% if pedido.direccion_envio_id == direccion.pk %}
+                            checked
+                        {% endif %}
                     >
 
                     <strong>
