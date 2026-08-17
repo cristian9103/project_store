@@ -1560,3 +1560,87 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.PENDIENTE,
         )
+        
+    def test_confirmar_pago_con_pago_aprobado_lanza_error(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago=pago,
+            aprobado=True,
+        )
+        
+        with self.assertRaises(EstadoPagoInvalidoError):
+            confirmar_pago(
+                pago=pago,
+                aprobado=True
+            )
+            
+        pago.refresh_from_db()
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.APROBADO,
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+    def test_confirmar_pago_con_pago_rechazado_lanza_error(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago=pago,
+            aprobado=False,
+        )
+        
+        with self.assertRaises(EstadoPagoInvalidoError):
+            confirmar_pago(
+                pago=pago,
+                aprobado=True,
+            )
+            
+        pago.refresh_from_db()
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.RECHAZADO,
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
