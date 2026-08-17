@@ -59,3 +59,21 @@ def procesar_pago(pago, aprobado):
     pago.estado = EstadoPago.RECHAZADO
     pago.save(update_fields=["estado"])
     return False
+
+def aplicar_pago_aprobado(pago):
+    if pago.estado != EstadoPago.APROBADO:
+        raise EstadoPagoInvalidoError(
+            "El pago debe estar aprobado."
+        )
+        
+    pedido = pago.pedido
+    
+    if pedido.estado != EstadoPedido.PENDIENTE:
+        raise EstadoPedidoInvalidoError(
+            "El pedido debe estar pendiente."
+        )
+        
+    pedido.estado = EstadoPedido.PREPARACION
+    pedido.save(update_fields=["estado"])
+    
+    return True
