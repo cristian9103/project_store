@@ -915,7 +915,7 @@ class PedidosTestCase(BaseTestCase):
             2,
         )
         
-    def test_procesar_pago_pendiente_aprueba_pago(self):
+    def test_procesar_pago_con_aprobado_true_cambia_estado_a_aprobado(self):
         self.crear_detalle()
         
         direccion = Direccion.objects.create(
@@ -948,4 +948,39 @@ class PedidosTestCase(BaseTestCase):
         self.assertEqual(
             pago.estado,
             EstadoPago.APROBADO,
+        )
+        
+    def test_procesar_pago_con_aprobado_false_cambia_estado_a_rechazado(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        resultado = procesar_pago(
+            pago=pago,
+            aprobado=False,
+        )
+        
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            resultado,
+            False,
+        )
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.RECHAZADO,
         )

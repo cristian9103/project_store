@@ -55,3 +55,7 @@ def procesar_pago(pago, aprobado):
         pago.estado = EstadoPago.APROBADO
         pago.save(update_fields=["estado"])
         return True
+    
+    pago.estado = EstadoPago.RECHAZADO
+    pago.save(update_fields=["estado"])
+    return False
