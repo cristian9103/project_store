@@ -8,6 +8,8 @@ from pedidos.services import (
     iniciar_pago,
     procesar_pago,
     aplicar_pago_aprobado,
+    calcular_subtotal,
+    calcular_total,
 )
 from pedidos.models import (Pedido, 
     EstadoPedido, 
@@ -1214,4 +1216,112 @@ class PedidosTestCase(BaseTestCase):
         self.assertEqual(
             self.pedido.estado,
             EstadoPedido.ENVIADO,
+        )
+        
+    def test_aplicar_pago_aprobado_pedido_en_preparacion_lanza_error(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago=pago,
+            aprobado=True,
+        )
+        
+        aplicar_pago_aprobado(pago)
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            aplicar_pago_aprobado(pago)
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+    def test_aplicar_pago_aprobado_no_modifica_totales_pedido(self):
+        self.crear_detalle(
+            cantidad=2,
+            precio_unitario=Decimal("20_000.00"),
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        
+        subtotal = calcular_subtotal(self.pedido)
+        
+        self.pedido.subtotal = subtotal
+        self.pedido.costo_envio = Decimal("5_000.00")
+        self.pedido.descuento = Decimal("3_000.00")
+        self.pedido.total = calcular_total(
+            self.pedido,
+            subtotal,
+        )
+        
+        self.pedido.save()
+        
+        valores_antes = {
+            "subtotal": self.pedido.subtotal,
+            "costo_envio": self.pedido.costo_envio,
+            "descuento": self.pedido.descuento,
+            "total": self.pedido.total,
+        }
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago=pago,
+            aprobado=True,
+        )
+        
+        aplicar_pago_aprobado(pago)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+        self.assertEqual(
+            self.pedido.subtotal,
+            valores_antes["subtotal"],
+        )
+        
+        self.assertEqual(
+            self.pedido.costo_envio,
+            valores_antes["costo_envio"],
+        )
+        
+        self.assertEqual(
+            self.pedido.descuento,
+            valores_antes["descuento"],
+        )
+        
+        self.assertEqual(
+            self.pedido.total,
+            valores_antes["total"],
         )
