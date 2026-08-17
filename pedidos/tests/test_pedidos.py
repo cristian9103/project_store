@@ -1151,3 +1151,67 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.PREPARACION,
         )
+        
+    def test_aplicar_pago_no_aprobado_lanza_error(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        with self.assertRaises(EstadoPagoInvalidoError):
+            aplicar_pago_aprobado(pago)
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+    def test_aplicar_pago_aprobado_pedido_no_pendiente_lanza_error(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago=pago,
+            aprobado=True,
+        )
+        
+        self.pedido.estado = EstadoPedido.ENVIADO
+        self.pedido.save(update_fields=["estado"])
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            aplicar_pago_aprobado(pago)
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.ENVIADO,
+        )
