@@ -10,6 +10,7 @@ from pedidos.services import (
     aplicar_pago_aprobado,
     calcular_subtotal,
     calcular_total,
+    confirmar_pago,
 )
 from pedidos.models import (Pedido, 
     EstadoPedido, 
@@ -1390,3 +1391,88 @@ class PedidosTestCase(BaseTestCase):
         resultado = aplicar_pago_aprobado(pago)
         
         self.assertTrue(resultado)
+        
+    def test_aplicar_pago_aprobado_no_modifica_pago(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago=pago,
+            aprobado=True,
+        )
+        
+        cantidad_pagos_antes = Pago.objects.filter(
+            pedido=self.pedido
+        ).count()
+        
+        estado_pago_antes = pago.estado
+        
+        aplicar_pago_aprobado(pago)
+        
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            estado_pago_antes,
+        )
+        
+        self.assertEqual(
+            Pago.objects.filter(
+                pedido=self.pedido
+            ).count(),
+            cantidad_pagos_antes,
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+    def test_confirmar_pago_aprobado_actualiza_pago_y_pedido(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        resultado = confirmar_pago(
+            pago=pago,
+            aprobado=True,
+        )
+        
+        pago.refresh_from_db()
+        self.pedido.refresh_from_db()
+        
+        self.assertTrue(resultado)
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
