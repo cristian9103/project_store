@@ -984,3 +984,65 @@ class PedidosTestCase(BaseTestCase):
             pago.estado,
             EstadoPago.RECHAZADO,
         )
+        
+    def test_procesar_pago_aprobado_lanza_error(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago=pago,
+            aprobado=True,
+        )
+        
+        pago.refresh_from_db()
+        
+        with self.assertRaises(EstadoPagoInvalidoError):
+            procesar_pago(
+                pago=pago,
+                aprobado=False,
+            )
+            
+    def test_procesar_pago_rechazado_lanza_error(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago=pago,
+            aprobado=False,
+        )
+        
+        pago.refresh_from_db()
+        
+        with self.assertRaises(EstadoPagoInvalidoError):
+            procesar_pago(
+                pago=pago,
+                aprobado=True,
+            )
