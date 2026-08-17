@@ -10,6 +10,7 @@ from pedidos.models import (
     Pago,
 )
 
+from django.db import transaction
 
 def iniciar_pago(pedido):
     if pedido.estado != EstadoPedido.PENDIENTE:
@@ -77,3 +78,15 @@ def aplicar_pago_aprobado(pago):
     pedido.save(update_fields=["estado"])
     
     return True
+
+def confirmar_pago(pago, aprobado):
+    with transaction.atomic():
+        resultado = procesar_pago(
+            pago=pago,
+            aprobado=aprobado,
+        )
+        
+        if resultado:
+            aplicar_pago_aprobado(pago)
+            
+        return resultado
