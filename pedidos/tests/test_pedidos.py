@@ -1,5 +1,4 @@
 from .base import BaseTestCase
-from decimal import Decimal
 from pedidos.services import (
     crear_pedido, 
     confirmar_pedido,
@@ -29,7 +28,11 @@ from pedidos.exceptions import (
 from catalogo.models import Producto
 from clientes.models import Direccion, Cliente
 
+from decimal import Decimal
+
 from django.db.models import ProtectedError
+
+from unittest.mock import patch
 
 class PedidosTestCase(BaseTestCase):
     
@@ -1475,4 +1478,85 @@ class PedidosTestCase(BaseTestCase):
         self.assertEqual(
             self.pedido.estado,
             EstadoPedido.PREPARACION,
+        )
+        
+    def test_confirmar_pago_rechazado_no_prepara_pedido(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        resultado = confirmar_pago(
+            pago=pago,
+            aprobado=False,
+        )
+        
+        pago.refresh_from_db()
+        self.pedido.refresh_from_db()
+        
+        self.assertFalse(resultado)
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.RECHAZADO,
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+    def test_confirmar_pago_si_falla_aplicar_pago_hace_rollback(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        with patch(
+            "pedidos.services.pagos.aplicar_pago_aprobado",
+            side_effect=EstadoPedidoInvalidoError(
+                "Error simulado."
+            ),
+        ):
+            with self.assertRaises(EstadoPedidoInvalidoError):
+                confirmar_pago(
+                    pago=pago,
+                    aprobado=True,
+                )
+                
+        pago.refresh_from_db()
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.PENDIENTE,
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
         )
