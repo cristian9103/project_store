@@ -27,4 +27,5 @@ from .stock import (
 from .pagos import (
     iniciar_pago,
     procesar_pago,
+    aplicar_pago_aprobado,
 )
