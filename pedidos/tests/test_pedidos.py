@@ -1046,3 +1046,75 @@ class PedidosTestCase(BaseTestCase):
                 pago=pago,
                 aprobado=True,
             )
+            
+    def test_procesar_pago_aprobado_invalido_no_modifica_estado(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago=pago,
+            aprobado=True,
+        )
+        
+        with self.assertRaises(EstadoPagoInvalidoError):
+            procesar_pago(
+                pago=pago,
+                aprobado=False,
+            )
+            
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.APROBADO,
+        )
+        
+    def test_procesar_pago_rechazado_invalido_no_modifica_estado(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago=pago,
+            aprobado=False,
+        )
+        
+        with self.assertRaises(EstadoPagoInvalidoError):
+            procesar_pago(
+                pago=pago,
+                aprobado=True
+            )
+            
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.RECHAZADO,
+        )
