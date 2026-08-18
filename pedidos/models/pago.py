@@ -25,5 +25,15 @@ class Pago(BaseModel):
         verbose_name_plural = "Pagos"
         db_table = "pagos"
         
+        constraints = [
+            models.UniqueConstraint(
+                fields=["pedido"],
+                condition=models.Q(
+                    estado=EstadoPago.PENDIENTE
+                ),
+                name="unique_pago_pendiente_por_pedido",
+            ),
+        ]
+        
     def __str__(self):
         return f"Pago del pedido #{self.pedido_id}"

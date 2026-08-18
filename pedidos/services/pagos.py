@@ -28,18 +28,23 @@ def iniciar_pago(pedido):
             "El pedido necesita una dirección de envío."
         )
         
-    pago = Pago.objects.filter(
+    pago_pendiente = Pago.objects.filter(
         pedido=pedido,
+        estado=EstadoPago.PENDIENTE,
     ).first()
     
-    if pago:
-        if pago.estado == EstadoPago.PENDIENTE:
-            return pago
+    if pago_pendiente:
+        return pago_pendiente
+    
+    pago_aprobado = Pago.objects.filter(
+        pedido=pedido,
+        estado=EstadoPago.APROBADO,
+    ).first()
         
-        if pago.estado == EstadoPago.APROBADO:
-            raise EstadoPagoInvalidoError(
-                "El pedido ya tiene un pago aprobado."
-            )
+    if pago_aprobado:
+        raise EstadoPagoInvalidoError(
+            "El pedido ya tiene un pago aprobado."
+        )
     
     return Pago.objects.create(
         pedido=pedido,

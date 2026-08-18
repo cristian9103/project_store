@@ -31,6 +31,7 @@ from clientes.models import Direccion, Cliente
 from decimal import Decimal
 
 from django.db.models import ProtectedError
+from django.db import IntegrityError
 
 from unittest.mock import patch
 
@@ -1766,3 +1767,27 @@ class PedidosTestCase(BaseTestCase):
             resultado.pk,
             pago_rechazado.pk,
         )
+        
+    def test_no_puede_existir_mas_de_un_pago_pendiente_por_pedido(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        with self.assertRaises(IntegrityError):
+            Pago.objects.create(
+                pedido=self.pedido,
+                estado=EstadoPago.PENDIENTE,
+            )
