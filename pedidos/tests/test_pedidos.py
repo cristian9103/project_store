@@ -1691,3 +1691,78 @@ class PedidosTestCase(BaseTestCase):
             ).count(),
             2,
         )
+        
+    def test_iniciar_pago_con_pago_pendiente_no_crea_otro_pago(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        primer_pago = iniciar_pago(self.pedido)
+        
+        segundo_pago = iniciar_pago(self.pedido)
+        
+        self.assertEqual(
+            segundo_pago.pk,
+            primer_pago.pk,
+        )
+        
+        self.assertEqual(
+            Pago.objects.filter(
+                pedido=self.pedido,
+                estado=EstadoPago.PENDIENTE,
+            ).count(),
+            1,
+        )
+        
+    def test_iniciar_pago_con_pago_rechazado_y_pendiente_devuelve_pendiente(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago_rechazado = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago=pago_rechazado,
+            aprobado=False,
+        )
+        
+        pago_pendiente = iniciar_pago(self.pedido)
+        
+        resultado = iniciar_pago(self.pedido)
+        
+        self.assertEqual(
+            resultado.pk,
+            pago_pendiente.pk,
+        )
+        
+        self.assertEqual(
+            resultado.estado,
+            EstadoPago.PENDIENTE,
+        )
+        
+        self.assertNotEqual(
+            resultado.pk,
+            pago_rechazado.pk,
+        )
