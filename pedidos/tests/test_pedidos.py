@@ -11,6 +11,7 @@ from pedidos.services import (
     calcular_total,
     confirmar_pago,
     enviar_pedido,
+    entregar_pedido,
 )
 from pedidos.models import (Pedido, 
     EstadoPedido, 

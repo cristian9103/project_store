@@ -143,3 +143,14 @@ def enviar_pedido(pedido):
     pedido.save(update_fields=["estado"])
     
     return True
+
+def entregar_pedido(pedido):
+    if pedido.estado != EstadoPedido.ENVIADO:
+        raise EstadoPedidoInvalidoError(
+            "El pedido debe estar enviado."
+        )
+        
+    pedido.estado = EstadoPedido.ENTREGADO
+    pedido.save(update_fields=["estado"])
+    
+    return True
