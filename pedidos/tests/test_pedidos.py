@@ -1791,3 +1791,56 @@ class PedidosTestCase(BaseTestCase):
                 pedido=self.pedido,
                 estado=EstadoPago.PENDIENTE,
             )
+            
+    def test_iniciar_pago_pedido_en_preparacion_lanza_error(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save(update_fields=["direccion_envio", "estado"])
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            iniciar_pago(self.pedido)
+            
+    def test_aplicar_pago_aprobado_pedido_no_pendiente_no_cambia_estado(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save(update_fields=["direccion_envio", "estado"])
+        
+        pago = Pago.objects.create(
+            pedido=self.pedido,
+            estado=EstadoPago.APROBADO,
+        )
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            aplicar_pago_aprobado(pago)
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+            
