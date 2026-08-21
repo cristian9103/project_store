@@ -1843,4 +1843,32 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.PREPARACION,
         )
+        
+    def test_enviar_pedido_preparacion_cambia_estado_a_enviado(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save(update_fields=["direccion_envio", "estado"])
+        
+        resultado = enviar_pedido(self.pedido)
+        
+        self.assertTrue(resultado)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.ENVIADO,
+        )
             
