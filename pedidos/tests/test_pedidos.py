@@ -1927,4 +1927,30 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.ENTREGADO,
         )
+        
+    def test_entregar_pedido_no_enviado_lanza_error(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            entregar_pedido(self.pedido)
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
             
