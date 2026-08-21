@@ -132,3 +132,14 @@ def obtener_pedido_pendiente(cliente):
             estado=EstadoPedido.PENDIENTE,
         ).first()
     )
+    
+def enviar_pedido(pedido):
+    if pedido.estado != EstadoPedido.PREPARACION:
+        raise EstadoPedidoInvalidoError(
+            "El pedido debe estar en preparación."
+        )
+        
+    pedido.estado = EstadoPedido.ENVIADO
+    pedido.save(update_fields=["estado"])
+    
+    return True

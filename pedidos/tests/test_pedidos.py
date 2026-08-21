@@ -10,6 +10,7 @@ from pedidos.services import (
     calcular_subtotal,
     calcular_total,
     confirmar_pago,
+    enviar_pedido,
 )
 from pedidos.models import (Pedido, 
     EstadoPedido, 

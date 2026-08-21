@@ -17,6 +17,7 @@ from .pedidos import (
     confirmar_pedido,
     asignar_direccion_pedido,
     obtener_pedido_pendiente,
+    enviar_pedido,
 )
 
 from .stock import (
