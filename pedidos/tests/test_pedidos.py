@@ -2207,7 +2207,7 @@ class PedidosTestCase(BaseTestCase):
         )
         
         # Un pedido cancelado no puede iniciar un pago
-        with self.assertRaises(EstadoPagoInvalidoError):
+        with self.assertRaises(EstadoPedidoInvalidoError):
             iniciar_pago(self.pedido)
             
     def test_flujo_pedido_en_preparacion_cancelado_no_puede_enviarse(self):
@@ -2258,4 +2258,53 @@ class PedidosTestCase(BaseTestCase):
         # Un pedido cancelado no puede enviarse
         with self.assertRaises(EstadoPedidoInvalidoError):
             enviar_pedido(self.pedido)
+            
+    def test_pago_aprobado_confirma_pedido_y_descuenta_stock(self):
+        detalle = self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        producto = detalle.producto
+        stock_inicial = producto.stock
+        cantidad = detalle.cantidad
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago,
+            aprobado=True,
+        )
+        
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.APROBADO,
+        )
+        
+        aplicar_pago_aprobado(pago)
+        
+        self.pedido.refresh_from_db()
+        producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+        self.assertEqual(
+            producto.stock,
+            stock_inicial - cantidad,
+        )
             

@@ -9,6 +9,7 @@ from pedidos.models import (
     EstadoPago,
     Pago,
 )
+from pedidos.services import confirmar_pedido
 
 from django.db import transaction
 
@@ -79,8 +80,7 @@ def aplicar_pago_aprobado(pago):
             "El pedido debe estar pendiente."
         )
         
-    pedido.estado = EstadoPedido.PREPARACION
-    pedido.save(update_fields=["estado"])
+    confirmar_pedido(pedido)
     
     return True
 
