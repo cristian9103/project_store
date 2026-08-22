@@ -2023,4 +2023,158 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.CANCELADO,
         )
+   
+    def test_flujo_completo_pedido_desde_pago_hasta_entrega(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        # 1. Iniciar pago
+        pago = iniciar_pago(self.pedido)
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.PENDIENTE,
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+        # 2. Procesar pago exitosamente
+        procesar_pago(
+            pago,
+            aprobado=True,
+        )
+        
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.APROBADO,
+        )
+        
+        # 3. Aplicar el pago aprobado al pedido
+        aplicar_pago_aprobado(pago)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+        # 4. Enviar pedido
+        enviar_pedido(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.ENVIADO,
+        )
+        
+        # 5. Entregar pedido
+        entregar_pedido(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.ENTREGADO,
+        )
+        
+    def test_flujo_pago_rechazado_nuevo_intento_y_aprobacion(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        # Primer intento de pago
+        pago_rechazado = iniciar_pago(self.pedido)
+        
+        self.assertEqual(
+            pago_rechazado.estado,
+            EstadoPago.PENDIENTE
+        )
+        
+        procesar_pago(
+            pago_rechazado,
+            aprobado=False,
+        )
+        
+        pago_rechazado.refresh_from_db()
+        
+        self.assertEqual(
+            pago_rechazado.estado,
+            EstadoPago.RECHAZADO,
+        )
+        
+        # El pedido sigue pendiente
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+        # Segundo intento
+        pago_nuevo = iniciar_pago(self.pedido)
+        
+        self.assertNotEqual(
+            pago_nuevo.pk,
+            pago_rechazado.pk,
+        )
+        
+        self.assertEqual(
+            pago_nuevo.estado,
+            EstadoPago.PENDIENTE,
+        )
+        
+        # Segundo intento aprobado
+        procesar_pago(
+            pago_nuevo,
+            aprobado=True,
+        )
+        
+        pago_nuevo.refresh_from_db()
+        
+        self.assertEqual(
+            pago_nuevo.estado,
+            EstadoPago.APROBADO,
+        )
+        
+        # Aplicamos el pago aprobado
+        aplicar_pago_aprobado(pago_nuevo)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
             
