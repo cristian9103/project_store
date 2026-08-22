@@ -12,6 +12,7 @@ from pedidos.services import (
     confirmar_pago,
     enviar_pedido,
     entregar_pedido,
+    cancelar_pedido,
 )
 from pedidos.models import (Pedido, 
     EstadoPedido, 
@@ -1952,5 +1953,17 @@ class PedidosTestCase(BaseTestCase):
         self.assertEqual(
             self.pedido.estado,
             EstadoPedido.PENDIENTE,
+        )
+        
+    def test_cancelar_pedido_pendiente_cambia_estado_a_cancelado(self):
+        resultado = cancelar_pedido(self.pedido)
+        
+        self.assertTrue(resultado)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO,
         )
             

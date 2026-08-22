@@ -154,3 +154,14 @@ def entregar_pedido(pedido):
     pedido.save(update_fields=["estado"])
     
     return True
+
+def cancelar_pedido(pedido):
+    if pedido.estado != EstadoPedido.PENDIENTE:
+        raise EstadoPedidoInvalidoError(
+            "El pedido debe estar pendiente."
+        )
+        
+    pedido.estado = EstadoPedido.CANCELADO
+    pedido.save(update_fields=["estado"])
+    
+    return True
