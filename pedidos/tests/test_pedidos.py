@@ -1966,4 +1966,33 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.CANCELADO,
         )
+        
+    def test_cancelar_pedido_en_preparacion_cambia_estado_a_cancelado(self):
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save(update_fields=["estado"])
+        
+        resultado = cancelar_pedido(self.pedido)
+        
+        self.assertTrue(resultado)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO,
+        )
+        
+    def test_cancelar_pedido_enviado_lanza_error(self):
+        self.pedido.estado = EstadoPedido.ENVIADO
+        self.pedido.save(update_fields=["estado"])
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            cancelar_pedido(self.pedido)
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.ENVIADO,
+        )
             

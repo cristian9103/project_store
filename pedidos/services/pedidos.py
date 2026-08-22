@@ -156,7 +156,10 @@ def entregar_pedido(pedido):
     return True
 
 def cancelar_pedido(pedido):
-    if pedido.estado != EstadoPedido.PENDIENTE:
+    if pedido.estado not in {
+        EstadoPedido.PENDIENTE,
+        EstadoPedido.PREPARACION,
+    }:
         raise EstadoPedidoInvalidoError(
             "El pedido debe estar pendiente."
         )
