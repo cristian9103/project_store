@@ -2177,4 +2177,85 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.PREPARACION,
         )
+        
+    def test_flujo_pedido_pendiente_cancelado_no_puede_iniciar_pago(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        # Cancelar el pedido
+        resultado = cancelar_pedido(self.pedido)
+        
+        self.assertTrue(resultado)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO,
+        )
+        
+        # Un pedido cancelado no puede iniciar un pago
+        with self.assertRaises(EstadoPagoInvalidoError):
+            iniciar_pago(self.pedido)
+            
+    def test_flujo_pedido_en_preparacion_cancelado_no_puede_enviarse(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        # Crear y aprobar el pago
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago,
+            aprobado=True,
+        )
+        
+        aplicar_pago_aprobado(pago)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+        # Cancelar el pedido
+        resultado = cancelar_pedido(self.pedido)
+        
+        self.assertTrue(resultado)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO
+        )
+        
+        # Un pedido cancelado no puede enviarse
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            enviar_pedido(self.pedido)
             
