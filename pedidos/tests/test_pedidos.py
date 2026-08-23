@@ -2518,4 +2518,60 @@ class PedidosTestCase(BaseTestCase):
             producto_2.stock,
             stock_confirmado_2,
         )
+        
+    def test_cancelar_pedido_en_preparacion_no_cambia_estado_del_pago_aprobado(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago,
+            aprobado=True,
+        )
+        
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.APROBADO,
+        )
+        
+        # El pago aprobado confirma el pedido y descuento stock
+        aplicar_pago_aprobado(pago)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+        # Cancelamos el pedido.
+        cancelar_pedido(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO,
+        )
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.APROBADO,
+        )
             
