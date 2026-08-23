@@ -2307,4 +2307,50 @@ class PedidosTestCase(BaseTestCase):
             producto.stock,
             stock_inicial - cantidad,
         )
+        
+    def test_cancelar_pedido_en_preparacion_devuelve_stock(self):
+        detalle = self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        producto = detalle.producto
+        stock_inicial = producto.stock
+        cantidad = detalle.cantidad
+        
+        # Confirmar el pedido descuenta el stock
+        confirmar_pedido(self.pedido)
+        
+        producto.refresh_from_db()
+        
+        self.assertEqual(
+            producto.stock,
+            stock_inicial - cantidad,
+        )
+        
+        # Cancelar el pedido
+        cancelar_pedido(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO,
+        )
+        
+        self.assertEqual(
+            producto.stock,
+            stock_inicial,
+        )
             

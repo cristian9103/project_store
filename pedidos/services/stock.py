@@ -24,4 +24,16 @@ def descontar_stock(producto, cantidad):
     producto.refresh_from_db(fields=["stock"])
     
     return producto
+
+def devolver_stock(producto, cantidad):
+    if cantidad <= 0:
+        raise CantidadInvalidaError(
+            "La cantidad debe ser mayor que cero."
+        )
+        
+    producto.stock = F("stock") + cantidad
+    producto.save(update_fields=["stock"])
+    producto.refresh_from_db(fields=["stock"])
+    
+    return producto
     
