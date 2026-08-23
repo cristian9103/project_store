@@ -2446,4 +2446,76 @@ class PedidosTestCase(BaseTestCase):
             producto_2.stock,
             stock_inicial_2,
         )
+        
+    def test_cancelar_pedido_en_preparacion_revierte_todo_si_falla_devolucion_stock(self):
+        detalle = self.crear_detalle()
+        
+        producto_1 = detalle.producto
+        stock_inicial_1 = producto_1.stock
+        
+        producto_2 = Producto.objects.create(
+            categoria=self.categoria,
+            marca=self.marca,
+            sku="PROD-002",
+            nombre="Segundo producto",
+            precio_compra=Decimal("5_000.00"),
+            precio_venta=Decimal("8_000.00"),
+            stock=15,
+            activo=True,
+        )
+        
+        detalle_2 = self.crear_detalle(
+            producto_2,
+            cantidad=3,
+            precio_unitario=producto_2.precio_venta
+        )
+        
+        stock_inicial_2 = producto_2.stock
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        confirmar_pedido(self.pedido)
+        
+        producto_1.refresh_from_db()
+        producto_2.refresh_from_db()
+        
+        stock_confirmado_1 = producto_1.stock
+        stock_confirmado_2 = producto_2.stock
+        
+        with patch(
+            "pedidos.services.pedidos.devolver_stock",
+            side_effect=RuntimeError("Error devolviendo stock"),
+        ):
+            with self.assertRaises(RuntimeError):
+                cancelar_pedido(self.pedido)
+                
+        self.pedido.refresh_from_db()
+        producto_1.refresh_from_db()
+        producto_2.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+        self.assertEqual(
+            producto_1.stock,
+            stock_confirmado_1,
+        )
+        
+        self.assertEqual(
+            producto_2.stock,
+            stock_confirmado_2,
+        )
             
