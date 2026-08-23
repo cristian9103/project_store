@@ -2648,4 +2648,95 @@ class PedidosTestCase(BaseTestCase):
             producto_2.stock,
             stock_inicial_2,
         )
+        
+    def test_confirmar_pedido_en_preparacion_lanza_error_y_no_descuenta_stock_nuevamente(self):
+        detalle = self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        confirmar_pedido(self.pedido)
+        
+        producto = detalle.producto
+        producto.refresh_from_db()
+        
+        stock_despues_de_confirmar = producto.stock
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            confirmar_pedido(self.pedido)
+            
+        self.pedido.refresh_from_db()
+        producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+        self.assertEqual(
+            producto.stock,
+            stock_despues_de_confirmar,
+        )
+        
+    def test_confirmar_pedido_actualiza_subtotal_y_total(self):
+        detalle = self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.costo_envio = Decimal("10_000.00")
+        self.pedido.descuento = Decimal("5_000.00")
+        
+        self.pedido.save(
+            update_fields=[
+                "direccion_envio",
+                "costo_envio",
+                "descuento",
+            ]
+        )
+        
+        subtotal_esperado = detalle.subtotal
+        
+        total_esperado = (
+            subtotal_esperado
+            + self.pedido.costo_envio
+            - self.pedido.descuento
+        )
+        
+        confirmar_pedido(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.subtotal,
+            subtotal_esperado,
+        )
+        
+        self.assertEqual(
+            self.pedido.total,
+            total_esperado,
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
             
