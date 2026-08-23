@@ -2574,4 +2574,78 @@ class PedidosTestCase(BaseTestCase):
             pago.estado,
             EstadoPago.APROBADO,
         )
+        
+    def test_entregar_pedido_cancelado_lanza_error(self):
+        self.pedido.estado = EstadoPedido.CANCELADO
+        self.pedido.save(update_fields=["estado"])
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            entregar_pedido(self.pedido)
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO,
+        )
+        
+    def test_confirmar_pedido_con_stock_insuficiente_no_descuenta_stock_de_ningun_producto(self):
+        detalle = self.crear_detalle()
+        
+        producto_1 = detalle.producto
+        stock_inicial_1 = producto_1.stock
+        
+        producto_2 = Producto.objects.create(
+            categoria=self.categoria,
+            marca=self.marca,
+            sku="PROD-002",
+            nombre="Segundo producto",
+            precio_compra=Decimal("5_000.00"),
+            precio_venta=Decimal("8_000.00"),
+            stock=1,
+            activo=True,
+        )
+        
+        self.crear_detalle(
+            producto=producto_2,
+            cantidad=5,
+            precio_unitario=producto_2.precio_venta,
+        )
+        
+        stock_inicial_2 = producto_2.stock
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        with self.assertRaises(StockInsuficienteError):
+            confirmar_pedido(self.pedido)
+            
+        self.pedido.refresh_from_db()
+        producto_1.refresh_from_db()
+        producto_2.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+        self.assertEqual(
+            producto_1.stock,
+            stock_inicial_1,
+        )
+        
+        self.assertEqual(
+            producto_2.stock,
+            stock_inicial_2,
+        )
             
