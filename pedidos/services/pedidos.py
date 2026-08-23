@@ -1,6 +1,10 @@
 from pedidos.models.pedidos import Pedido, EstadoPedido
 from .calculos import ZERO, actualizar_totales
-from .stock import validar_stock, descontar_stock
+from .stock import (
+    validar_stock, 
+    descontar_stock,
+    devolver_stock,
+)
 from pedidos.exceptions import (
     PedidoVacioError, 
     EstadoPedidoInvalidoError,
@@ -156,15 +160,31 @@ def entregar_pedido(pedido):
     return True
 
 def cancelar_pedido(pedido):
-    if pedido.estado not in {
-        EstadoPedido.PENDIENTE,
-        EstadoPedido.PREPARACION,
-    }:
-        raise EstadoPedidoInvalidoError(
-            "El pedido debe estar pendiente."
-        )
+    with transaction.atomic():
+        if pedido.estado not in {
+            EstadoPedido.PENDIENTE,
+            EstadoPedido.PREPARACION,
+        }:
+            raise EstadoPedidoInvalidoError(
+                "El pedido no puede cancelarse en su estado actual."
+            )
+            
+        if pedido.estado == EstadoPedido.PREPARACION:
+            detalles = list(
+                pedido.detalles_pedido
+                .select_related("producto")
+                .select_for_update(
+                    of=("producto",)
+                )
+            )
+            
+            for detalle in detalles:
+                devolver_stock(
+                    detalle.producto,
+                    detalle.cantidad,
+                )
+            
+        pedido.estado = EstadoPedido.CANCELADO
+        pedido.save(update_fields=["estado"])
         
-    pedido.estado = EstadoPedido.CANCELADO
-    pedido.save(update_fields=["estado"])
-    
-    return True
+        return True

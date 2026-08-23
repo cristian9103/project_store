@@ -25,6 +25,7 @@ from .pedidos import (
 from .stock import (
     validar_stock,
     descontar_stock,
+    devolver_stock,
 )
 
 from .pagos import (
