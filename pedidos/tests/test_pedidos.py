@@ -2353,4 +2353,97 @@ class PedidosTestCase(BaseTestCase):
             producto.stock,
             stock_inicial,
         )
+        
+    def test_cancelar_pedido_pendiente_no_modifica_stock(self):
+        detalle = self.crear_detalle()
+        
+        producto = detalle.producto
+        stock_inicial = producto.stock
+        
+        cancelar_pedido(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO,
+        )
+        
+        self.assertEqual(
+            producto.stock,
+            stock_inicial,
+        )
+        
+    def test_cancelar_pedido_en_preparacion_devuelve_stock_de_todos_los_productos(self):
+        detalle = self.crear_detalle()
+        
+        producto_1 = detalle.producto
+        stock_inicial_1 = producto_1.stock
+        cantidad_1 = detalle.cantidad
+        
+        producto_2 = Producto.objects.create(
+            categoria=self.categoria,
+            marca=self.marca,
+            sku="PROD-002",
+            nombre="Segundo producto",
+            precio_compra=Decimal("5_000.00"),
+            precio_venta=Decimal("8_000.00"),
+            stock=15,
+            activo=True,
+        )
+        
+        detalle_2 = self.crear_detalle(
+            producto_2,
+            cantidad=3,
+            precio_unitario=producto_2.precio_venta
+        )
+        
+        stock_inicial_2 = producto_2.stock
+        cantidad_2 = detalle_2.cantidad
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        # Descuenta el stock de ambos productos
+        confirmar_pedido(self.pedido)
+        
+        producto_1.refresh_from_db()
+        producto_2.refresh_from_db()
+        
+        self.assertEqual(
+            producto_1.stock,
+            stock_inicial_1 - cantidad_1
+        )
+        
+        self.assertEqual(
+            producto_2.stock,
+            stock_inicial_2 - cantidad_2
+        )
+        
+        # Cancela y devuelve el stock
+        cancelar_pedido(self.pedido)
+        
+        producto_1.refresh_from_db()
+        producto_2.refresh_from_db()
+        
+        self.assertEqual(
+            producto_1.stock,
+            stock_inicial_1,
+        )
+        
+        self.assertEqual(
+            producto_2.stock,
+            stock_inicial_2,
+        )
             
