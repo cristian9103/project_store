@@ -2739,4 +2739,106 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.PREPARACION,
         )
+        
+    def test_aplicar_pago_aprobado_con_stock_insuficiente_no_deja_pago_aprobado(self):
+        self.crear_detalle(
+            cantidad=self.producto.stock + 1,
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago,
+            aprobado=True,
+        )
+        
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.APROBADO,
+        )
+        
+        with self.assertRaises(StockInsuficienteError):
+            aplicar_pago_aprobado(pago)
+            
+        self.pedido.refresh_from_db()
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.APROBADO,
+        )
+        
+    def test_aplicar_pago_aprobado_dos_veces_no_descuenta_stock_dos_veces(self):
+        detalle = self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        producto = detalle.producto
+        stock_inicial = producto.stock
+        cantidad = detalle.cantidad
+        
+        pago = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago,
+            aprobado=True
+        )
+        
+        aplicar_pago_aprobado(pago)
+        
+        producto.refresh_from_db()
+        
+        stock_despues_de_aplicar = producto.stock
+        
+        self.assertEqual(
+            stock_despues_de_aplicar,
+            stock_inicial - cantidad,
+        )
+        
+        with self.assertRaises(EstadoPedidoInvalidoError):
+            aplicar_pago_aprobado(pago)
+            
+        producto.refresh_from_db()
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            producto.stock,
+            stock_despues_de_aplicar,
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
             
