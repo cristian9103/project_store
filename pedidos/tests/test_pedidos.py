@@ -2841,4 +2841,157 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.PREPARACION,
         )
+        
+    def test_iniciar_pago_con_pago_rechazado_crea_nuevo_pago_pendiente(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago_rechazado = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago_rechazado,
+            aprobado=False
+        )
+        
+        pago_rechazado.refresh_from_db()
+        
+        self.assertEqual(
+            pago_rechazado.estado,
+            EstadoPago.RECHAZADO,
+        )
+        
+        nuevo_pago = iniciar_pago(self.pedido)
+        
+        self.assertNotEqual(
+            nuevo_pago.pk,
+            pago_rechazado.pk,
+        )
+        
+        self.assertEqual(
+            nuevo_pago.estado,
+            EstadoPago.PENDIENTE,
+        )
+        
+        self.assertEqual(
+            Pago.objects.filter(
+                pedido=self.pedido,
+                estado=EstadoPago.RECHAZADO,
+            ).count(),
+            1,
+        )
+        
+        self.assertEqual(
+            Pago.objects.filter(
+                pedido=self.pedido,
+                estado=EstadoPago.PENDIENTE,
+            ).count(),
+            1,
+        )
+        
+    def test_aprobar_pago_con_intentos_rechazados_previos_confirma_pedido(self):
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        # Primer intento
+        pago_1 = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago_1,
+            aprobado=False,
+        )
+        
+        pago_1.refresh_from_db()
+        
+        self.assertEqual(
+            pago_1.estado,
+            EstadoPago.RECHAZADO,
+        )
+        
+        # Segundo intento
+        pago_2 = iniciar_pago(self.pedido)
+        
+        procesar_pago(
+            pago_2,
+            aprobado=False,
+        )
+        
+        pago_2.refresh_from_db()
+        
+        self.assertEqual(
+            pago_2.estado,
+            EstadoPago.RECHAZADO,
+        )
+        
+        self.assertEqual(
+            Pago.objects.filter(
+                pedido=self.pedido,
+                estado=EstadoPago.RECHAZADO,
+            ).count(),
+            2,
+        )
+        
+        # Tercer intento
+        pago_3 = iniciar_pago(self.pedido)
+        
+        self.assertEqual(
+            pago_3.estado,
+            EstadoPago.PENDIENTE,
+        )
+        
+        procesar_pago(
+            pago_3,
+            aprobado=True,
+        )
+        
+        aplicar_pago_aprobado(pago_3)
+        
+        self.pedido.refresh_from_db()
+        
+        pago_1.refresh_from_db()
+        pago_2.refresh_from_db()
+        pago_3.refresh_from_db()
+        
+        self.assertEqual(
+            pago_1.estado,
+            EstadoPago.RECHAZADO,
+        )
+        
+        self.assertEqual(
+            pago_2.estado,
+            EstadoPago.RECHAZADO,
+        )
+        
+        self.assertEqual(
+            pago_3.estado,
+            EstadoPago.APROBADO,
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
             
