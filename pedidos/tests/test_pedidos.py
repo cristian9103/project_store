@@ -2994,4 +2994,104 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.PREPARACION,
         )
+        
+    def test_flujo_completo_pedido_pago_envio_entrega(self):
+        detalle = self.crear_detalle()
+        
+        producto = detalle.producto
+        stock_inicial = producto.stock
+        cantidad = detalle.cantidad
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        # 1. El pedido comienza pendiente.
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+        # 2. Iniciar pago.
+        pago = iniciar_pago(self.pedido)
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.PENDIENTE,
+        )
+        
+        # 3. El proveedor aprueba el pago.
+        procesar_pago(
+            pago,
+            aprobado=True,
+        )
+        
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.APROBADO,
+        )
+        
+        # 4. Aplicar el pago aprobado
+        aplicar_pago_aprobado(pago)
+        
+        self.pedido.refresh_from_db()
+        producto.refresh_from_db()
+        
+        # 5. El pedido pasa a preparación y se descuenta el stock.
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+        self.assertEqual(
+            producto.stock,
+            stock_inicial - cantidad,
+        )
+        
+        # 6. Enviar el pedido.
+        enviar_pedido(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.ENVIADO,
+        )
+        
+        # 7. Entregar el pedido.
+        entregar_pedido(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.ENTREGADO,
+        )
+        
+        # 8. Estado final del pago.
+        pago.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.APROBADO,
+        )
+        
+        # 9. El stock permanece descontado.
+        producto.refresh_from_db()
+        
+        self.assertEqual(
+            producto.stock,
+            stock_inicial - cantidad,
+        )
             
