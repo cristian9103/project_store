@@ -3094,4 +3094,51 @@ class PedidosTestCase(BaseTestCase):
             producto.stock,
             stock_inicial - cantidad,
         )
+        
+    def test_confirmar_pago_aprobado_con_stock_insuficiente_hace_rollback_del_pago(self):
+        self.crear_detalle(
+            cantidad=self.producto.stock + 1,
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = iniciar_pago(self.pedido)
+        
+        stock_inicial = self.producto.stock
+        
+        with self.assertRaises(StockInsuficienteError):
+            confirmar_pago(
+                pago,
+                aprobado=True,
+            )
+            
+        pago.refresh_from_db()
+        self.pedido.refresh_from_db()
+        self.producto.refresh_from_db()
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.PENDIENTE,
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+        self.assertEqual(
+            self.producto.stock,
+            stock_inicial,
+        )
             
