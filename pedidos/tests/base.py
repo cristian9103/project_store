@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.test import TestCase
 
 from usuarios.models import Usuario
-from clientes.models import Cliente, Direccion
+from clientes.models import Cliente
 from catalogo.models import Categoria, Marca, Producto
 from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.services import ZERO, calcular_subtotal, calcular_total

@@ -3,9 +3,49 @@ from django.contrib import admin
 from pedidos.models.detalles_pedido import DetallePedido
 from pedidos.models.pedidos import Pedido
 
+class DetallePedidoInline(admin.TabularInline):
+    model = DetallePedido
+    
+    fields = (
+        "producto",
+        "precio_unitario",
+        "cantidad",
+        "subtotal",
+    )
+    
+    readonly_fields = (
+        "producto",
+        "precio_unitario",
+        "cantidad",
+        "subtotal",
+    )
+    
+    extra = 0
+    can_delete = False
+
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
     list_display = (
+        "id",
+        "cliente",
+        "estado",
+        "fecha",
+        "total",
+    )
+    
+    search_fields = (
+        "id",
+        "cliente__documento",
+    )
+    
+    list_filter = (
+        "fecha",
+        "estado",
+    )
+    
+    list_select_related = ("cliente",)
+    
+    readonly_fields = (
         "cliente",
         "direccion_envio",
         "fecha",
@@ -16,19 +56,9 @@ class PedidoAdmin(admin.ModelAdmin):
         "total",
     )
     
-    search_fields = (
-        "fecha",
-        "estado",
+    inlines = (
+        DetallePedidoInline,
     )
-    
-    list_filter = (
-        "fecha",
-        "estado",
-    )
-    
-    ordering = ("fecha",)
-    
-    list_select_related = ("cliente",)
     
 @admin.register(DetallePedido)
 class DetallePedidoAdmin(admin.ModelAdmin):
@@ -43,7 +73,7 @@ class DetallePedidoAdmin(admin.ModelAdmin):
     
     search_fields = (
         "pedido__pk",
-        "producto__sku",
+        "producto__pk",
         "fecha_creacion",
     )
     
@@ -55,4 +85,16 @@ class DetallePedidoAdmin(admin.ModelAdmin):
     
     ordering = ("fecha_creacion",)
     
-    list_select_related = ("pedido", "producto",)
+    list_select_related = (
+        "pedido",
+        "producto",
+    )
+    
+    readonly_fields = (
+        "pedido",
+        "producto",
+        "precio_unitario",
+        "cantidad",
+        "subtotal",
+        "fecha_creacion",
+    )
