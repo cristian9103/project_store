@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.test import RequestFactory
+from unittest.mock import patch
 
 from pedidos.models import EstadoPedido, Pedido
 from pedidos.admin import PedidoAdmin
@@ -35,15 +37,21 @@ class PedidoAdminTestCase(BaseTestCase):
             ]
         )
         
+        request = RequestFactory().get("/admin/pedidos/pedido/")
+        
         pedido_admin = PedidoAdmin(
             Pedido,
             admin.site,
         )
         
-        pedido_admin.enviar_pedidos(
-            None,
-            queryset,
-        )
+        with patch.object(
+            pedido_admin,
+            "message_user",
+        ):   
+            pedido_admin.enviar_pedidos(
+                request,
+                queryset,
+            )
         
         self.pedido.refresh_from_db()
         pedido_2.refresh_from_db()

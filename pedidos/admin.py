@@ -1,7 +1,9 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.db import transaction
 
-from pedidos.models.detalles_pedido import DetallePedido
-from pedidos.models.pedidos import Pedido
+from pedidos.models import Pedido, DetallePedido, EstadoPedido
+from pedidos.services import enviar_pedido
+from pedidos.exceptions import EstadoPedidoInvalidoError
 
 class DetallePedidoInline(admin.TabularInline):
     model = DetallePedido
@@ -58,6 +60,35 @@ class PedidoAdmin(admin.ModelAdmin):
     
     inlines = (
         DetallePedidoInline,
+    )
+    
+    @admin.action(description="Enviar pedidos seleccionados")
+    def enviar_pedidos(self, request, queryset):
+        pedidos = list(queryset)
+        
+        if any(
+            pedido.estado != EstadoPedido.PREPARACION
+            for pedido in pedidos
+        ):
+            self.message_user(
+                request,
+                "Tdoso los pedidos seleccionados deben estar en preparación.",
+                level=messages.ERROR,
+            )
+            return
+        
+        with transaction.atomic():
+            for pedido in pedidos:
+                enviar_pedido(pedido)
+                
+        self.message_user(
+            request,
+            "Los pedidos seleccionados fueron enviado correctamente.",
+            level=messages.SUCCESS,
+        )
+        
+    actions = (
+        "enviar_pedidos",
     )
     
 @admin.register(DetallePedido)
