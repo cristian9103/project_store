@@ -5,6 +5,7 @@ from pedidos.models import Pedido, DetallePedido, EstadoPedido
 from pedidos.services import (
     enviar_pedido,
     entregar_pedido,
+    cancelar_pedido,
 )
 from pedidos.exceptions import EstadoPedidoInvalidoError
 
@@ -115,9 +116,24 @@ class PedidoAdmin(admin.ModelAdmin):
             level=messages.SUCCESS,
         )
         
+    @admin.action(description="Cancelar Pedidos seleccionados")
+    def cancelar_pedidos(self, request, queryset):
+        pedidos = list(queryset)
+        
+        with transaction.atomic():
+            for pedido in pedidos:
+                cancelar_pedido(pedido)
+                
+        self.message_user(
+            request,
+            "Los pedidos seleccionados fueron cancelados correctamente.",
+            level=messages.SUCCESS,
+        )
+        
     actions = (
         "enviar_pedidos",
         "entregar_pedidos",
+        "cancelar_pedidos",
     )
     
 @admin.register(DetallePedido)
