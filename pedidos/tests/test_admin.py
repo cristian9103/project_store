@@ -169,7 +169,7 @@ class PedidoAdminTestCase(BaseTestCase):
         )
         
         request = RequestFactory().get(
-            "/admin/pedidos/pedido"
+            "/admin/pedidos/pedido/"
         )
         
         pedido_admin = PedidoAdmin(
