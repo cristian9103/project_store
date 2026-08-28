@@ -62,7 +62,7 @@ class PedidoAdmin(admin.ModelAdmin):
         DetallePedidoInline,
     )
     
-    @admin.action(description="Enviar pedidos seleccionados")
+    @admin.action(description="Enviar Pedidos seleccionados")
     def enviar_pedidos(self, request, queryset):
         pedidos = list(queryset)
         

@@ -141,3 +141,60 @@ class PedidoAdminTestCase(BaseTestCase):
             "enviar_pedidos",
             acciones,
         )
+        
+    def test_entregar_pedidos_seleccionados_cambia_todos_a_entregado(self):
+        self.pedido.estado = EstadoPedido.ENVIADO
+        self.pedido.save(update_fields=["estado"])
+        
+        cliente_2 = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+        
+        pedido_2 = Pedido.objects.create(
+            cliente=cliente_2,
+            estado=EstadoPedido.ENVIADO,
+            subtotal=ZERO,
+            costo_envio=ZERO,
+            descuento=ZERO,
+            total=ZERO,
+        )
+        
+        queryset = Pedido.objects.filter(
+            pk__in=[
+                self.pedido.pk,
+                pedido_2.pk,
+            ]
+        )
+        
+        request = RequestFactory().get(
+            "/admin/pedidos/pedido"
+        )
+        
+        pedido_admin = PedidoAdmin(
+            Pedido,
+            admin.site,
+        )
+        
+        with patch.object(
+            pedido_admin,
+            "message_user",
+        ):
+            pedido_admin.entregar_pedidos(
+                request,
+                queryset,
+            )
+            
+        self.pedido.refresh_from_db()
+        pedido_2.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.ENTREGADO,
+        )
+        
+        self.assertEqual(
+            pedido_2.estado,
+            EstadoPedido.ENTREGADO,
+        )
