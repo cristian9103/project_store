@@ -13,8 +13,10 @@ from pedidos.services import (
     enviar_pedido,
     entregar_pedido,
     cancelar_pedido,
+    seleccionar_direccion,
 )
-from pedidos.models import (Pedido, 
+from pedidos.models import (
+    Pedido, 
     EstadoPedido, 
     DetallePedido,
     Pago,
@@ -3140,5 +3142,27 @@ class PedidosTestCase(BaseTestCase):
         self.assertEqual(
             self.producto.stock,
             stock_inicial,
+        )
+        
+    def test_seleccionar_direccion_asocia_direccion_al_pedido(self):
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+        )
+        
+        seleccionar_direccion(
+            self.pedido,
+            direccion,
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.direccion_envio,
+            direccion,
         )
             

@@ -188,3 +188,12 @@ def cancelar_pedido(pedido):
         pedido.save(update_fields=["estado"])
         
         return True
+    
+def seleccionar_direccion(pedido, direccion):
+    pedido.direccion_envio = direccion
+    
+    pedido.save(
+        update_fields=["direccion_envio"]
+    )
+    
+    return pedido

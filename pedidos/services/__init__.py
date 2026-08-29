@@ -20,6 +20,7 @@ from .pedidos import (
     enviar_pedido,
     entregar_pedido,
     cancelar_pedido,
+    seleccionar_direccion,
 )
 
 from .stock import (
