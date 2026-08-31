@@ -13,7 +13,6 @@ from pedidos.services import (
     enviar_pedido,
     entregar_pedido,
     cancelar_pedido,
-    seleccionar_direccion,
 )
 from pedidos.models import (
     Pedido, 
@@ -30,13 +29,12 @@ from pedidos.exceptions import (
     DireccionPedidoInvalidaError,
     EstadoPagoInvalidoError,
 )
-from pedidos.selectors import obtener_direcciones_pedido
 from catalogo.models import Producto
 from clientes.models import Direccion, Cliente
 
 from decimal import Decimal
 
-from django.db.models import ProtectedError, QuerySet
+from django.db.models import ProtectedError
 from django.db import IntegrityError
 
 from unittest.mock import patch
@@ -607,6 +605,12 @@ class PedidosTestCase(BaseTestCase):
                 pedido=self.pedido,
                 direccion=direccion,
             )
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertIsNone(
+            self.pedido.direccion_envio,
+        )
             
     def test_confirmar_pedido_con_direccion_conserva_direccion(self):
         self.crear_detalle()
@@ -3143,159 +3147,5 @@ class PedidosTestCase(BaseTestCase):
         self.assertEqual(
             self.producto.stock,
             stock_inicial,
-        )
-        
-    def test_seleccionar_direccion_asocia_direccion_al_pedido(self):
-        direccion = Direccion.objects.create(
-            cliente=self.cliente,
-            nombre="Casa",
-            direccion="Calle 10 # 20-30",
-            ciudad="Medellín",
-            departamento="Antioquia",
-            codigo_postal="050001",
-        )
-        
-        seleccionar_direccion(
-            self.pedido,
-            direccion,
-        )
-        
-        self.pedido.refresh_from_db()
-        
-        self.assertEqual(
-            self.pedido.direccion_envio,
-            direccion,
-        )
-        
-    def test_seleccionar_direccion_de_otro_cliente_lanza_error(self):
-        otro_cliente = Cliente.objects.create(
-            usuario=self.otro_usuario,
-            documento="987654321",
-            telefono="3119876543",
-        )
-        
-        direccion = Direccion.objects.create(
-            cliente=otro_cliente,
-            nombre="Casa",
-            direccion="Calle 10 # 20-30",
-            ciudad="Medellín",
-            departamento="Antioquia",
-            codigo_postal="050001",
-        )
-        
-        with self.assertRaises(DireccionPedidoInvalidaError):
-            seleccionar_direccion(
-                self.pedido,
-                direccion,
-            )
-            
-        self.pedido.refresh_from_db()
-        
-        self.assertIsNone(
-            self.pedido.direccion_envio,
-        )
-        
-    def test_seleccionar_direccion_invalida_conserva_direccion_actual(self):
-        direccion_actual = Direccion.objects.create(
-            cliente=self.cliente,
-            nombre="Casa",
-            direccion="Calle 10 # 20-30",
-            ciudad="Medellín",
-            departamento="Antioquia",
-            codigo_postal="050001",
-        )
-        
-        self.pedido.direccion_envio = direccion_actual
-        self.pedido.save(update_fields=["direccion_envio"])
-        
-        otro_cliente = Cliente.objects.create(
-            usuario=self.otro_usuario,
-            documento="987654321",
-            telefono="3119876543",
-        )
-        
-        direccion_invalida = Direccion.objects.create(
-            cliente=otro_cliente,
-            nombre="Casa",
-            direccion="Calle 50 # 10-20",
-            ciudad="Medellín",
-            departamento="Antioquia",
-            codigo_postal="050002",
-        )
-        
-        with self.assertRaises(DireccionPedidoInvalidaError):
-            seleccionar_direccion(
-                self.pedido,
-                direccion_invalida,
-            )
-            
-        self.pedido.refresh_from_db()
-        
-        self.assertEqual(
-            self.pedido.direccion_envio_id,
-            direccion_actual.id,
-        )
-            
-    def test_obtener_direcciones_pedido_devuelve_solo_las_del_cliente(self):
-        direccion_1 = Direccion.objects.create(
-            cliente=self.cliente,
-            nombre="Casa",
-            direccion="Calle 10 # 20-30",
-            ciudad="Medellín",
-            departamento="Antioquia",
-            codigo_postal="050001",
-        )
-
-        direccion_2 = Direccion.objects.create(
-            cliente=self.cliente,
-            nombre="Trabajo",
-            direccion="Carrera 40 # 50-60",
-            ciudad="Medellín",
-            departamento="Antioquia",
-            codigo_postal="050002",
-        )
-
-        otro_cliente = Cliente.objects.create(
-            usuario=self.otro_usuario,
-            documento="987654321",
-            telefono="3119876543",
-        )
-
-        direccion_otro_cliente = Direccion.objects.create(
-            cliente=otro_cliente,
-            nombre="Casa",
-            direccion="Carrera 1 # 2-3",
-            ciudad="Bogotá",
-            departamento="Cundinamarca",
-            codigo_postal="110001",
-        )
-
-        direcciones = obtener_direcciones_pedido(
-            self.pedido
-        )
-
-        self.assertIn(
-            direccion_1,
-            direcciones,
-        )
-
-        self.assertIn(
-            direccion_2,
-            direcciones,
-        )
-
-        self.assertNotIn(
-            direccion_otro_cliente,
-            direcciones,
-        )
-        
-    def test_obtener_direcciones_pedido_devuelve_queryset(self):
-        direcciones = obtener_direcciones_pedido(
-            self.pedido
-        )
-        
-        self.assertIsInstance(
-            direcciones,
-            QuerySet,
         )
         
