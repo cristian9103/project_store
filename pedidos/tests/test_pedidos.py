@@ -36,7 +36,7 @@ from clientes.models import Direccion, Cliente
 
 from decimal import Decimal
 
-from django.db.models import ProtectedError
+from django.db.models import ProtectedError, QuerySet
 from django.db import IntegrityError
 
 from unittest.mock import patch
@@ -3288,3 +3288,14 @@ class PedidosTestCase(BaseTestCase):
             direccion_otro_cliente,
             direcciones,
         )
+        
+    def test_obtener_direcciones_pedido_devuelve_queryset(self):
+        direcciones = obtener_direcciones_pedido(
+            self.pedido
+        )
+        
+        self.assertIsInstance(
+            direcciones,
+            QuerySet,
+        )
+        
