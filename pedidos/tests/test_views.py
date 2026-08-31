@@ -1501,3 +1501,27 @@ class CheckoutViewTest(BaseTestCase):
             transform=lambda direccion: direccion.pk,
             ordered=False
         )
+        
+    def test_checkout_sin_pedido_pendiente_crea_pedido(self):
+        self.pedido.delete()
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse("pedidos:checkout")
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        pedido = Pedido.objects.get(
+            cliente=self.cliente,
+            estado=EstadoPedido.PENDIENTE,
+        )
+        
+        self.assertEqual(
+            response.context["pedido"],
+            pedido,
+        )
