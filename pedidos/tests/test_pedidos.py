@@ -30,6 +30,7 @@ from pedidos.exceptions import (
     DireccionPedidoInvalidaError,
     EstadoPagoInvalidoError,
 )
+from pedidos.selectors import obtener_direcciones_pedido
 from catalogo.models import Producto
 from clientes.models import Direccion, Cliente
 
@@ -3235,3 +3236,55 @@ class PedidosTestCase(BaseTestCase):
             direccion_actual.id,
         )
             
+    def test_obtener_direcciones_pedido_devuelve_solo_las_del_cliente(self):
+        direccion_1 = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+        )
+
+        direccion_2 = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Trabajo",
+            direccion="Carrera 40 # 50-60",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050002",
+        )
+
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+
+        direccion_otro_cliente = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa",
+            direccion="Carrera 1 # 2-3",
+            ciudad="Bogotá",
+            departamento="Cundinamarca",
+            codigo_postal="110001",
+        )
+
+        direcciones = obtener_direcciones_pedido(
+            self.pedido
+        )
+
+        self.assertIn(
+            direccion_1,
+            direcciones,
+        )
+
+        self.assertIn(
+            direccion_2,
+            direcciones,
+        )
+
+        self.assertNotIn(
+            direccion_otro_cliente,
+            direcciones,
+        )
