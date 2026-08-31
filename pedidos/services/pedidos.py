@@ -190,6 +190,11 @@ def cancelar_pedido(pedido):
         return True
     
 def seleccionar_direccion(pedido, direccion):
+    if direccion.cliente_id != pedido.cliente_id:
+        raise DireccionPedidoInvalidaError(
+            "La dirección de envío no pertenece al cliente del pedido."
+        )
+    
     pedido.direccion_envio = direccion
     
     pedido.save(

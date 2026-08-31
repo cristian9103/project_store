@@ -3165,4 +3165,73 @@ class PedidosTestCase(BaseTestCase):
             self.pedido.direccion_envio,
             direccion,
         )
+        
+    def test_seleccionar_direccion_de_otro_cliente_lanza_error(self):
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+        )
+        
+        with self.assertRaises(DireccionPedidoInvalidaError):
+            seleccionar_direccion(
+                self.pedido,
+                direccion,
+            )
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertIsNone(
+            self.pedido.direccion_envio,
+        )
+        
+    def test_seleccionar_direccion_invalida_conserva_direccion_actual(self):
+        direccion_actual = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+        )
+        
+        self.pedido.direccion_envio = direccion_actual
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+        
+        direccion_invalida = Direccion.objects.create(
+            cliente=otro_cliente,
+            nombre="Casa",
+            direccion="Calle 50 # 10-20",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050002",
+        )
+        
+        with self.assertRaises(DireccionPedidoInvalidaError):
+            seleccionar_direccion(
+                self.pedido,
+                direccion_invalida,
+            )
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.direccion_envio_id,
+            direccion_actual.id,
+        )
             
