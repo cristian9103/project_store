@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 
 from usuarios.models import Usuario
 from clientes.models import Cliente
@@ -56,6 +56,8 @@ class BaseTestCase(TestCase):
             descuento=ZERO,
             total=ZERO,
         )
+        
+        self.factory = RequestFactory()
         
     def crear_detalle(
         self,

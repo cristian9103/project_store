@@ -1,3 +1,5 @@
+from pedidos.admin import PedidoAdmin
+
 from .base import BaseTestCase
 from pedidos.services import (
     crear_pedido, 

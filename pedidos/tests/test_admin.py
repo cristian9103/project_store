@@ -407,3 +407,38 @@ class PedidoAdminTestCase(BaseTestCase):
             "cancelar_pedidos",
             acciones,
         )
+        
+    def test_buscar_pedido_por_email_del_cliente(self):
+        pedido_admin = PedidoAdmin(
+            Pedido,
+            admin.site
+        )
+        
+        queryset = Pedido.objects.all()
+        
+        request = self.factory.get(
+            "/admin/pedidos/pedido/",
+            {"q": self.usuario.email},
+        )
+        
+        queryset, use_distinct = pedido_admin.get_search_results(
+            request,
+            queryset,
+            self.usuario.email,
+        )
+        
+        self.assertIn(
+            self.pedido,
+            queryset,
+        )
+        
+    def test_pedido_admin_filtra_por_estado(self):
+        pedido_admin = PedidoAdmin(
+            Pedido,
+            admin.site,
+        )
+        
+        self.assertIn(
+            "estado",
+            pedido_admin.list_filter,
+        )

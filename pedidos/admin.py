@@ -42,6 +42,7 @@ class PedidoAdmin(admin.ModelAdmin):
     search_fields = (
         "id",
         "cliente__documento",
+        "cliente__usuario__email",
     )
     
     list_filter = (
