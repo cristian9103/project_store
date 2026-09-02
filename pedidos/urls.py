@@ -12,4 +12,5 @@ urlpatterns = [
     path("confirmar/", views.ConfirmarPedidoView.as_view(), name="confirmar_pedido"),
     path("checkout/", views.checkout, name="checkout",),
     path("checkout/exito/<int:pk>/", views.checkout_exito, name="checkout_exito"),
+    path("mis-pedidos/", views.historial, name="historial"),
 ]
