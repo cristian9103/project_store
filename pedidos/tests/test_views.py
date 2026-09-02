@@ -1526,6 +1526,8 @@ class CheckoutViewTest(BaseTestCase):
             pedido,
         )
         
+class HistorialViewTest(BaseTestCase):
+        
     def test_historial_muestra_los_pedidos_del_cliente(self):
         self.client.force_login(self.usuario)
         
@@ -1546,4 +1548,60 @@ class CheckoutViewTest(BaseTestCase):
         self.assertContains(
             response,
             f"Pedido #{self.pedido.pk}"
+        )
+        
+    def test_historial_no_muestra_pedidos_de_otro_cliente(self):
+        self.client.force_login(self.usuario)
+        
+        pedido_otro_cliente = Pedido.objects.create(
+            cliente = Cliente.objects.create(
+                usuario=self.otro_usuario,
+                documento="987654321",
+                telefono="3119876543",
+            ),
+            estado=EstadoPedido.PREPARACION,
+            subtotal=Decimal("30_000.00"),
+            costo_envio=ZERO,
+            descuento=ZERO,
+            total=Decimal("30_000.00"),
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:historial")
+        )
+        
+        self.assertNotContains(
+            response,
+            f"Pedido #{pedido_otro_cliente.pk}",
+        )
+        
+    def test_historial_muestra_datos_basicos_del_pedido(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado=EstadoPedido.PREPARACION,
+            subtotal=Decimal("20_000.00"),
+            costo_envio=Decimal("5_000.00"),
+            descuento=ZERO,
+            total=Decimal("25_000.00"),
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:historial")
+        )
+        
+        self.assertContains(
+            response,
+            f"Pedido #{pedido.pk}",
+        )
+        
+        self.assertContains(
+            response,
+            pedido.estado.label,
+        )
+        
+        self.assertContains(
+            response,
+            "25_000.00",
         )
