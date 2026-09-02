@@ -1581,10 +1581,10 @@ class HistorialViewTest(BaseTestCase):
         pedido = Pedido.objects.create(
             cliente=self.cliente,
             estado=EstadoPedido.PREPARACION,
-            subtotal=Decimal("20_000.00"),
-            costo_envio=Decimal("5_000.00"),
+            subtotal=Decimal("20_000"),
+            costo_envio=Decimal("5_000"),
             descuento=ZERO,
-            total=Decimal("25_000.00"),
+            total=Decimal("25_000"),
         )
         
         response = self.client.get(
@@ -1603,5 +1603,26 @@ class HistorialViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            "25_000.00",
+            "25000,00",
+        )
+        
+    def test_historial_muestra_fecha_del_pedido(self):
+        self.client.force_login(self.usuario)
+        
+        pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado=EstadoPedido.PREPARACION,
+            subtotal=Decimal("20_000"),
+            costo_envio=ZERO,
+            descuento=ZERO,
+            total=Decimal("20_000"),
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:historial")
+        )
+        
+        self.assertContains(
+            response,
+            pedido.fecha.strftime("%d/%m/%Y"),
         )

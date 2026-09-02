@@ -1,5 +1,11 @@
 <h1>Mis pedidos</h1>
 
 {% for pedido in pedidos %}
-    <p>Pedido #{{ pedido.pk }}</p>
+    <div>
+        <h2>Pedido #{{ pedido.pk }}</h2>
+        
+        <p>Fecha: {{ pedido.fecha|date:"d/m/Y" }}</p>
+        <p>Estado: {{ pedido.get_estado_display }}</p>
+        <p>Total: {{ pedido.total }}</p>
+    </div>
 {% endfor %}
