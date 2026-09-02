@@ -4,7 +4,6 @@ from core.models.base_model import BaseModel
 
 class EstadoPedido(models.TextChoices):
     PENDIENTE = "PE", "Pendiente"
-    PAGADO = "PA", "Pagado"
     PREPARACION = "PR", "En preparación"
     ENVIADO = "EN", "Enviado"
     ENTREGADO = "ET", "Entregado"

@@ -1525,3 +1525,25 @@ class CheckoutViewTest(BaseTestCase):
             response.context["pedido"],
             pedido,
         )
+        
+    def test_historial_muestra_los_pedidos_del_cliente(self):
+        self.client.force_login(self.usuario)
+        
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.subtotal = Decimal("20_000.00")
+        self.pedido.total = Decimal("20_000.00")
+        self.pedido.save(update_fields=["estado", "subtotal", "total"])
+        
+        response = self.client.get(
+            reverse("pedidos:historial")
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertContains(
+            response,
+            f"Pedido #{self.pedido.pk}"
+        )
