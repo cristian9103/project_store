@@ -3,6 +3,8 @@ from django.contrib.messages import get_messages
 
 from decimal import Decimal
 
+from zoneinfo import ZoneInfo
+
 from .base import BaseTestCase
 from clientes.models import Cliente, Direccion
 from usuarios.models import Usuario
@@ -1618,6 +1620,9 @@ class HistorialViewTest(BaseTestCase):
             total=Decimal("20_000"),
         )
         
+        pedido.fecha = pedido.fecha.replace(tzinfo=ZoneInfo("America/Bogota"))
+        pedido.save(update_fields=["fecha"])
+        
         response = self.client.get(
             reverse("pedidos:historial")
         )
@@ -1625,4 +1630,47 @@ class HistorialViewTest(BaseTestCase):
         self.assertContains(
             response,
             pedido.fecha.strftime("%d/%m/%Y"),
+        )
+        
+    def test_historial_sin_pedidos_muestra_mensaje(self):
+        self.pedido.delete()
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse("pedidos:historial")
+        )
+        
+        self.assertContains(
+            response,
+            "Aún no tienes pedidos",
+        )
+        
+    def test_historial_muestra_pedidos_del_mas_reciente_al_mas_antiguo(self):
+        self.client.force_login(self.usuario)
+        
+        pedido_reciente = Pedido.objects.create(
+            cliente=self.cliente,
+            estado=EstadoPedido.PREPARACION,
+            subtotal=Decimal("20_000"),
+            costo_envio=ZERO,
+            descuento=ZERO,
+            total=Decimal("20_000"),
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:historial")
+        )
+        
+        contenido = response.content.decode()
+        
+        posicion_reciente = contenido.index(
+            f"Pedido #{pedido_reciente.pk}"
+        )
+        posicion_antiguo = contenido.index(
+            f"Pedido #{self.pedido.pk}"
+        )
+        
+        self.assertLess(
+            posicion_reciente,
+            posicion_antiguo,
         )

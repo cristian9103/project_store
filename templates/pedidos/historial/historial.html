@@ -8,4 +8,6 @@
         <p>Estado: {{ pedido.get_estado_display }}</p>
         <p>Total: {{ pedido.total }}</p>
     </div>
+{% empty %}
+    <p>Aún no tienes pedidos</p>
 {% endfor %}
