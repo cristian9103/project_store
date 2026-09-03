@@ -1759,3 +1759,53 @@ class HistorialViewTest(BaseTestCase):
             response,
             "Anterior",
         )
+        
+    def test_historial_segunda_pagina_muestra_anterior(self):
+        self.client.force_login(self.usuario)
+        
+        for i in range(12):
+            Pedido.objects.create(
+                cliente=self.cliente,
+                estado=EstadoPedido.PREPARACION,
+                subtotal=Decimal("10_000"),
+                costo_envio=ZERO,
+                descuento=ZERO,
+                total=Decimal("10_000"),
+            )
+            
+        response = self.client.get(
+            reverse("pedidos:historial"),
+            {"page": 2},
+        )
+        
+        self.assertContains(
+            response,
+            "Anterior",
+        )
+        
+        self.assertNotContains(
+            response,
+            "Siguiente",
+        )
+        
+class DetallePedidoViewTest(BaseTestCase):
+    
+    def test_detalle_pedido_muestra_pedido_del_cliente(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertContains(
+            response,
+            f"Pedido #{self.pedido.pk}",
+        )
