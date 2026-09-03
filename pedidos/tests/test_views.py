@@ -1699,3 +1699,63 @@ class HistorialViewTest(BaseTestCase):
             len(response.context["pedidos"]),
             10,
         )
+        
+    def test_historial_puede_mostrar_segunda_pagina(self):
+        self.client.force_login(self.usuario)
+        self.pedido.delete()
+        
+        pedidos = []
+        
+        for i in range(12):
+            pedidos.append(
+                Pedido.objects.create(
+                    cliente=self.cliente,
+                    estado=EstadoPedido.PREPARACION,
+                    subtotal=Decimal("10_000"),
+                    costo_envio=ZERO,
+                    descuento=ZERO,
+                    total=Decimal("10_000"),
+                )
+            )
+            
+        response = self.client.get(
+            reverse("pedidos:historial"),
+            {"page": 2},
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertEqual(
+            len(response.context["pedidos"]),
+            2,
+        )
+        
+    def test_historial_muestra_navegacion_de_paginacion(self):
+        self.client.force_login(self.usuario)
+        
+        for i in range(12):
+            Pedido.objects.create(
+                cliente=self.cliente,
+                estado=EstadoPedido.PREPARACION,
+                subtotal=Decimal("10_000"),
+                costo_envio=ZERO,
+                descuento=ZERO,
+                total=Decimal("10_000"),
+            )
+            
+        response = self.client.get(
+            reverse("pedidos:historial")
+        )
+        
+        self.assertContains(
+            response,
+            "Siguiente",
+        )
+        
+        self.assertNotContains(
+            response,
+            "Anterior",
+        )
