@@ -1674,3 +1674,28 @@ class HistorialViewTest(BaseTestCase):
             posicion_reciente,
             posicion_antiguo,
         )
+        
+    def test_historial_pagina_los_pedidos(self):
+        self.client.force_login(self.usuario)
+        
+        for i in range(12):
+            Pedido.objects.create(
+                cliente=self.cliente,
+                estado=EstadoPedido.PREPARACION,
+                subtotal=Decimal("10_000"),
+                costo_envio=ZERO,
+                descuento=ZERO,
+                total=Decimal("10_000"),
+            )
+            
+        response = self.client.get(
+            reverse("pedidos:historial")
+        )
+        
+        self.assertTrue(
+            response.context["is_paginated"]
+        )
+        self.assertEqual(
+            len(response.context["pedidos"]),
+            10,
+        )

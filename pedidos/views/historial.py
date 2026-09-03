@@ -1,25 +1,20 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render
-from django.views import View
+from django.views.generic import ListView
 
 from clientes.selectors import obtener_cliente
 from pedidos.models import Pedido
 
-class HistorialPedidosView(LoginRequiredMixin, View):
+class HistorialPedidosView(LoginRequiredMixin, ListView):
+    model = Pedido
+    template_name = "pedidos/historial/historial.html"
+    context_object_name = "pedidos"
+    paginate_by = 10
     
-    def get(self, request):
-        cliente = obtener_cliente(request.user)
+    def get_queryset(self):
+        cliente = obtener_cliente(self.request.user)
         
-        pedidos = Pedido.objects.filter(
+        return Pedido.objects.filter(
             cliente=cliente
-        )
-        
-        return render(
-            request,
-            "pedidos/historial/historial.html",
-            {
-                "pedidos": pedidos
-            },
         )
     
 historial = HistorialPedidosView.as_view()
