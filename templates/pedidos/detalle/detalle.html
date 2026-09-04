@@ -1,1 +1,7 @@
 <h1>Pedido #{{ pedido.pk }}</h1>
+
+{% for detalle in pedido.detalles_pedido.all %}
+    <div>
+        <h2>{{ detalle.producto.nombre }}</h2>
+    </div>
+{% endfor %}
