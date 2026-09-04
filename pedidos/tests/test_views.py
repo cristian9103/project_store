@@ -1809,3 +1809,50 @@ class DetallePedidoViewTest(BaseTestCase):
             response,
             f"Pedido #{self.pedido.pk}",
         )
+        
+    def test_detalle_pedido_de_otro_cliente_devuelve_404(self):
+        self.client.force_login(self.usuario)
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3019876543",
+        )
+        
+        pedido_otro_cliente = Pedido.objects.create(
+            cliente=otro_cliente,
+            estado=EstadoPedido.PREPARACION,
+            subtotal=Decimal("30_000"),
+            costo_envio=ZERO,
+            descuento=ZERO,
+            total=Decimal("30_000"),
+        )
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": pedido_otro_cliente.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+        
+    def test_detalle_pedido_muestra_productos(self):
+        self.client.force_login(self.usuario)
+        
+        detalle = self.crear_detalle()
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            detalle.producto.nombre,
+        )
