@@ -10,6 +10,7 @@ from clientes.models import Cliente, Direccion
 from usuarios.models import Usuario
 from pedidos.models import Pedido, EstadoPedido, DetallePedido
 from pedidos.services import ZERO, crear_pedido
+from catalogo.models import Producto
 
 class CarritoDetailViewTest(BaseTestCase):
     
@@ -1912,4 +1913,102 @@ class DetallePedidoViewTest(BaseTestCase):
         self.assertContains(
             response,
             f"Subtotal: {detalle.subtotal}",
+        )
+        
+    def test_detalle_pedido_muestra_todos_los_productos(self):
+        self.client.force_login(self.usuario)
+        
+        producto_2 = Producto.objects.create(
+            categoria=self.categoria,
+            marca=self.marca,
+            sku="BASE001",
+            nombre="Base",
+            precio_compra=Decimal("25_000"),
+            precio_venta=Decimal("40_000"),
+            stock=15,
+        )
+        
+        detalle_1 = self.crear_detalle()
+        
+        detalle_2 = self.crear_detalle(
+            producto=producto_2
+        )
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            detalle_1.producto.nombre,
+        )
+        
+        self.assertContains(
+            response,
+            detalle_2.producto.nombre,
+        )
+        
+    def test_detalle_pedido_muestra_resumen_economico(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            f"Subtotal del pedido: 0,00",
+        )
+        
+        self.assertContains(
+            response,
+            f"Costo de envío: 0,00",
+        )
+        
+        self.assertContains(
+            response,
+            f"Descuento: 0,00",
+        )
+        
+        self.assertContains(
+            response,
+            f"Total: 0,00",
+        )
+        
+    def test_detalle_pedido_muestra_estado(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk}
+            )
+        )
+        
+        self.assertContains(
+            response,
+            f"Estado: {self.pedido.get_estado_display()}",
+        )
+        
+    def test_detalle_pedido_muestra_fecha(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        fecha = self.pedido.fecha.strftime("%d/%m/%Y")
+        
+        self.assertContains(
+            response,
+            f"Fecha: {fecha}",
         )

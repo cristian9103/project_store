@@ -1,4 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Detalle pedido
+{% endblock %}
+
+{% block content %}
+
 <h1>Pedido #{{ pedido.pk }}</h1>
+
+<p>Estado: {{ pedido.get_estado_display }}</p>
 
 {% for detalle in pedido.detalles_pedido.all %}
     <div>
@@ -8,3 +18,14 @@
         <p>Subtotal: {{ detalle.subtotal }}</p>
     </div>
 {% endfor %}
+
+<section>
+    <h2>Resumen del pedido</h2>
+
+    <p>Subtotal del pedido: {{ pedido.subtotal }}</p>
+    <p>Costo de envío: {{ pedido.costo_envio }}</p>
+    <p>Descuento: {{ pedido.descuento }}</p>
+    <p>Total: {{ pedido.total }}</p>
+</section>
+
+{% endblock %}
