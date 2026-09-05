@@ -1856,3 +1856,22 @@ class DetallePedidoViewTest(BaseTestCase):
             response,
             detalle.producto.nombre,
         )
+    
+    def test_detalle_pedido_muestra_cantidad_de_productos(self):
+        self.client.force_login(self.usuario)
+        
+        detalle = self.crear_detalle(
+            cantidad=2
+        )
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            f"Cantidad: {detalle.cantidad}",
+        )
