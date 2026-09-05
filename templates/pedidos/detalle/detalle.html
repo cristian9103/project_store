@@ -3,5 +3,8 @@
 {% for detalle in pedido.detalles_pedido.all %}
     <div>
         <h2>{{ detalle.producto.nombre }}</h2>
+        <p>Cantidad: {{ detalle.cantidad }}</p>
+        <p>Precio unitario: {{ detalle.precio_unitario }}</p>
+        <p>Subtotal: {{ detalle.subtotal }}</p>
     </div>
 {% endfor %}

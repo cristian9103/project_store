@@ -1875,3 +1875,41 @@ class DetallePedidoViewTest(BaseTestCase):
             response,
             f"Cantidad: {detalle.cantidad}",
         )
+        
+    def test_detalle_pedido_muestra_precio_unitario(self):
+        self.client.force_login(self.usuario)
+        
+        detalle = self.crear_detalle(
+            cantidad=2
+        )
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            f"Precio unitario: {detalle.precio_unitario}",
+        )
+        
+    def test_detalle_pedido_muestra_subtotal(self):
+        self.client.force_login(self.usuario)
+        
+        detalle = self.crear_detalle(
+            cantidad=2,
+        )
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            f"Subtotal: {detalle.subtotal}",
+        )
