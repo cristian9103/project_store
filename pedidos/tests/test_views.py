@@ -1,9 +1,13 @@
+from datetime import datetime
+
 from django.urls import reverse
 from django.contrib.messages import get_messages
 
 from decimal import Decimal
 
 from zoneinfo import ZoneInfo
+
+from django.utils import timezone
 
 from .base import BaseTestCase
 from clientes.models import Cliente, Direccion
@@ -1999,6 +2003,19 @@ class DetallePedidoViewTest(BaseTestCase):
     def test_detalle_pedido_muestra_fecha(self):
         self.client.force_login(self.usuario)
         
+        fecha_actual = datetime.now()
+        anio = fecha_actual.year
+        mes = fecha_actual.month
+        dia = fecha_actual.day
+        
+        fecha_pedido = datetime(anio, mes, dia, 12, 0, tzinfo=timezone.get_current_timezone(),)
+        
+        Pedido.objects.filter(pk=self.pedido.pk).update(
+            fecha=fecha_pedido
+        )
+        
+        self.pedido.refresh_from_db()
+        
         response = self.client.get(
             reverse(
                 "pedidos:detalle",
@@ -2011,4 +2028,52 @@ class DetallePedidoViewTest(BaseTestCase):
         self.assertContains(
             response,
             f"Fecha: {fecha}",
+        )
+        
+    def test_detalle_pedido_muestra_direccion_de_envio(self):
+        self.client.force_login(self.usuario)
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            f"Nombre: {direccion.nombre}",
+        )
+        
+        self.assertContains(
+            response,
+            f"Dirección: {direccion.direccion}",
+        )
+        
+        self.assertContains(
+            response,
+            f"Ciudad: {direccion.ciudad}",
+        )
+        
+        self.assertContains(
+            response,
+            f"Departamento: {direccion.departamento}",
+        )
+        
+        self.assertContains(
+            response,
+            f"Código postal: {direccion.codigo_postal}",
         )
