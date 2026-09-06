@@ -2018,12 +2018,7 @@ class DetallePedidoViewTest(BaseTestCase):
     def test_detalle_pedido_muestra_fecha(self):
         self.client.force_login(self.usuario)
         
-        fecha_actual = datetime.now()
-        anio = fecha_actual.year
-        mes = fecha_actual.month
-        dia = fecha_actual.day
-        
-        fecha_pedido = datetime(anio, mes, dia, 12, 0, tzinfo=timezone.get_current_timezone(),)
+        fecha_pedido = datetime(2026, 9, 5, 12, 0, tzinfo=timezone.get_current_timezone(),)
         
         Pedido.objects.filter(pk=self.pedido.pk).update(
             fecha=fecha_pedido

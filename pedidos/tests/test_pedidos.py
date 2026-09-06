@@ -2584,6 +2584,30 @@ class PedidosTestCase(BaseTestCase):
             EstadoPago.APROBADO,
         )
         
+    def test_cancelar_pedido_en_estado_no_cancelable_lanza_error(self):
+        estados_no_cancelables = (
+            EstadoPedido.ENVIADO,
+            EstadoPedido.ENTREGADO,
+            EstadoPedido.CANCELADO
+        )
+        
+        for estado in estados_no_cancelables:
+            with self.subTest(estado=estado):
+                pedido = Pedido.objects.create(
+                    cliente=self.cliente,
+                    estado=estado,
+                )
+                
+                with self.assertRaises(EstadoPedidoInvalidoError):
+                    cancelar_pedido(pedido)
+                    
+                pedido.refresh_from_db()
+                
+                self.assertEqual(
+                    pedido.estado,
+                    estado,
+                )
+        
     def test_entregar_pedido_cancelado_lanza_error(self):
         self.pedido.estado = EstadoPedido.CANCELADO
         self.pedido.save(update_fields=["estado"])
@@ -3150,4 +3174,4 @@ class PedidosTestCase(BaseTestCase):
             self.producto.stock,
             stock_inicial,
         )
-        
+         
