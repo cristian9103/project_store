@@ -1793,6 +1793,21 @@ class HistorialViewTest(BaseTestCase):
             "Siguiente",
         )
         
+    def test_historial_muestra_enlace_al_detalle_del_pedido(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse("pedidos:historial")
+        )
+        
+        self.assertContains(
+            response,
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+        
 class DetallePedidoViewTest(BaseTestCase):
     
     def test_detalle_pedido_muestra_pedido_del_cliente(self):

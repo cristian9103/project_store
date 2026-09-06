@@ -15,6 +15,10 @@ Mi historial
         <p>Fecha: {{ pedido.fecha|date:"d/m/Y" }}</p>
         <p>Estado: {{ pedido.get_estado_display }}</p>
         <p>Total: {{ pedido.total }}</p>
+
+        <a href="{% url 'pedidos:detalle' pk=pedido.pk %}">
+            Ver detalle
+        </a>
     </div>
 {% empty %}
     <p>Aún no tienes pedidos</p>

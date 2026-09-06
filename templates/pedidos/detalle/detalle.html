@@ -21,6 +21,16 @@ Detalle pedido
 {% endfor %}
 
 <section>
+    <h2>Dirección de envío</h2>
+
+    <p>Nombre: {{ pedido.direccion_envio.nombre }}</p>
+    <p>Dirección: {{ pedido.direccion_envio.direccion }}</p>
+    <p>Ciudad: {{ pedido.direccion_envio.ciudad }}</p>
+    <p>Departamento: {{ pedido.direccion_envio.departamento }}</p>
+    <p>Código postal: {{ pedido.direccion_envio.codigo_postal }}</p>
+</section>
+
+<section>
     <h2>Resumen del pedido</h2>
 
     <p>Subtotal del pedido: {{ pedido.subtotal }}</p>
