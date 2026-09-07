@@ -2087,3 +2087,22 @@ class DetallePedidoViewTest(BaseTestCase):
             response,
             f"Código postal: {direccion.codigo_postal}",
         )
+        
+class CancelarPedidoViewTest(BaseTestCase):
+    
+    def test_cancelar_pedido_pendiente_cambia_estado(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:cancelar",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO,
+        )
