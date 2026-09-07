@@ -14,4 +14,5 @@ urlpatterns = [
     path("checkout/exito/<int:pk>/", views.checkout_exito, name="checkout_exito"),
     path("mis-pedidos/", views.historial, name="historial"),
     path("mis-pedidos/<int:pk>/", views.detalle, name="detalle"),
+    path("mis-pedidos/<int:pk>/cancelar/", views.cancelar, name="cancelar"),
 ]

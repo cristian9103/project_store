@@ -2093,6 +2093,9 @@ class CancelarPedidoViewTest(BaseTestCase):
     def test_cancelar_pedido_pendiente_cambia_estado(self):
         self.client.force_login(self.usuario)
         
+        self.pedido.estado = EstadoPedido.PENDIENTE
+        self.pedido.save(update_fields=["estado"])
+        
         response = self.client.get(
             reverse(
                 "pedidos:cancelar",
