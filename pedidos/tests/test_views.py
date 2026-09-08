@@ -2,12 +2,13 @@ from datetime import datetime
 
 from django.urls import reverse
 from django.contrib.messages import get_messages
+from django.utils import timezone
 
 from decimal import Decimal
 
 from zoneinfo import ZoneInfo
 
-from django.utils import timezone
+from pedidos.exceptions import EstadoPedidoInvalidoError
 
 from .base import BaseTestCase
 from clientes.models import Cliente, Direccion
@@ -2173,4 +2174,30 @@ class CancelarPedidoViewTest(BaseTestCase):
         self.assertEqual(
             response.status_code,
             404,
+        )
+        
+    def test_cancelar_pedido_enviado_muestra_error_en_detalle(self):
+        self.client.force_login(self.usuario)
+        
+        self.pedido.estado = EstadoPedido.ENVIADO
+        self.pedido.save(update_fields=["estado"])
+        
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:cancelar",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            "El pedido no puede cancelarse en su estado actual.",
+        )
+            
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.ENVIADO,
         )

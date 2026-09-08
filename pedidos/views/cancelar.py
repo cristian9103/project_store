@@ -1,10 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.views import View
 
 from clientes.selectors import obtener_cliente
 from pedidos.models import Pedido
 from pedidos.services import cancelar_pedido
+from pedidos.exceptions import EstadoPedidoInvalidoError
 
 class CancelarPedidoView(LoginRequiredMixin, View):
     
@@ -17,7 +18,18 @@ class CancelarPedidoView(LoginRequiredMixin, View):
             cliente=cliente,
         )
         
-        cancelar_pedido(pedido)
+        try:
+            cancelar_pedido(pedido)
+            
+        except EstadoPedidoInvalidoError as error:
+            return render(
+                request,
+                "pedidos/detalle/detalle.html",
+                {
+                    "pedido": pedido,
+                    "error": str(error),
+                },
+            )
         
         return redirect(
             "pedidos:detalle",
