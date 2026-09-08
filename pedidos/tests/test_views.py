@@ -2201,3 +2201,46 @@ class CancelarPedidoViewTest(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.ENVIADO,
         )
+        
+    def test_cancelar_pedido_cancelado_muestra_error_en_detalle(self):
+        self.client.force_login(self.usuario)
+        
+        self.pedido.estado = EstadoPedido.CANCELADO
+        self.pedido.save(update_fields=["estado"])
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:cancelar",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            "El pedido no puede cancelarse en su estado actual.",
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO,
+        )
+        
+    def test_detalle_pedido_pendiente_muestra_boton_cancelar(self):
+        self.client.force_login(self.usuario)
+        
+        self.pedido.estado = EstadoPedido.PENDIENTE
+        self.pedido.save(update_fields=["estado"])
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            "Cancelar pedido",
+        )

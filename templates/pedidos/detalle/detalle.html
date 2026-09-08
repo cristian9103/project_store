@@ -43,4 +43,11 @@ Detalle pedido
     <p>Total: {{ pedido.total }}</p>
 </section>
 
+{% if pedido.estado == "PE" or pedido.estado == "PR" %}
+    <form method="post" action="{% url 'pedidos:cancelar' pedido.pk %}">
+        {% csrf_token %}
+        <button type="submit">Cancelar pedido</button>
+    </form>
+{% endif %}
+
 {% endblock %}
