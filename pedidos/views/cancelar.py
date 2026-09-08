@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.views import View
 
 from clientes.selectors import obtener_cliente
@@ -11,7 +11,8 @@ class CancelarPedidoView(LoginRequiredMixin, View):
     def post(self, request, pk):
         cliente = obtener_cliente(request.user)
         
-        pedido = Pedido.objects.get(
+        pedido = get_object_or_404(
+            Pedido,
             pk=pk,
             cliente=cliente,
         )

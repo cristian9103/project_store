@@ -2096,7 +2096,7 @@ class CancelarPedidoViewTest(BaseTestCase):
         self.pedido.estado = EstadoPedido.PENDIENTE
         self.pedido.save(update_fields=["estado"])
         
-        response = self.client.get(
+        response = self.client.post(
             reverse(
                 "pedidos:cancelar",
                 kwargs={"pk": self.pedido.pk},
@@ -2108,4 +2108,69 @@ class CancelarPedidoViewTest(BaseTestCase):
         self.assertEqual(
             self.pedido.estado,
             EstadoPedido.CANCELADO,
+        )
+        
+    def test_cancelar_pedido_en_preparacion_devuelve_stock(self):
+        detalle = self.crear_detalle()
+        
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save(update_fields=["estado"])
+        
+        producto = detalle.producto
+        stock_inicial = producto.stock
+        cantidad = detalle.cantidad
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:cancelar",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.pedido.refresh_from_db()
+        producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO,
+        )
+        
+        self.assertEqual(
+            producto.stock,
+            stock_inicial + cantidad,
+        )
+        
+    def test_cancelar_pedido_de_otro_cliente_no_permite_cancelacion(self):
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3219876543",
+        )
+        
+        pedido_otro_cliente = Pedido.objects.create(
+            cliente=otro_cliente,
+            estado=EstadoPedido.PENDIENTE,
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:cancelar",
+                kwargs={"pk": pedido_otro_cliente.pk},
+            )
+        )
+        
+        pedido_otro_cliente.refresh_from_db()
+        
+        self.assertEqual(
+            pedido_otro_cliente.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404,
         )
