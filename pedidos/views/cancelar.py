@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404, render
 from django.views import View
@@ -22,14 +23,7 @@ class CancelarPedidoView(LoginRequiredMixin, View):
             cancelar_pedido(pedido)
             
         except EstadoPedidoInvalidoError as error:
-            return render(
-                request,
-                "pedidos/detalle/detalle.html",
-                {
-                    "pedido": pedido,
-                    "error": str(error),
-                },
-            )
+            messages.error(request, str(error))
         
         return redirect(
             "pedidos:detalle",

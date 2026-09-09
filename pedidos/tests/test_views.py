@@ -2288,3 +2288,28 @@ class CancelarPedidoViewTest(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.CANCELADO,
         )
+        
+    def test_cancelar_pedido_invalido_agrega_mensaje(self):
+        self.client.force_login(self.usuario)
+        
+        self.pedido.estado = EstadoPedido.ENVIADO
+        self.pedido.save(update_fields=["estado"])
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:cancelar",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        messages = list(response.wsgi_request._messages)
+        
+        self.assertEqual(
+            len(messages),
+            1,
+        )
+        
+        self.assertEqual(
+            str(messages[0]),
+            "El pedido no puede cancelarse en su estado actual.",
+        )
