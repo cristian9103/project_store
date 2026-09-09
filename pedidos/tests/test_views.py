@@ -2089,6 +2089,68 @@ class DetallePedidoViewTest(BaseTestCase):
             f"Código postal: {direccion.codigo_postal}",
         )
         
+    def test_detalle_pedido_pendiente_muestra_boton_cancelar(self):
+        self.client.force_login(self.usuario)
+
+        self.pedido.estado = EstadoPedido.PENDIENTE
+        self.pedido.save(update_fields=["estado"])
+
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+
+        self.assertContains(
+            response,
+            "Cancelar pedido",
+        )
+        
+    def test_detalle_pedido_en_preparacion_muestra_boton_cancelar(self):
+        self.client.force_login(self.usuario)
+        
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save(update_fields=["estado"])
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            "Cancelar pedido",
+        )
+        
+    def test_detalle_pedido_no_muestra_boton_cancelar_en_estados_no_cancelables(self):
+        self.client.force_login(self.usuario)
+        
+        estados_no_cancelables = (
+            EstadoPedido.ENVIADO,
+            EstadoPedido.ENTREGADO,
+            EstadoPedido.CANCELADO,
+        )
+        
+        for estado in estados_no_cancelables:
+            with self.subTest(estado=estado):
+                self.pedido.estado = estado
+                self.pedido.save(update_fields=["estado"])
+                
+                response = self.client.get(
+                    reverse(
+                        "pedidos:detalle",
+                        kwargs={"pk": self.pedido.pk},
+                    )
+                )
+                
+                self.assertNotContains(
+                    response,
+                    "Cancelar pedido",
+                )
+        
 class CancelarPedidoViewTest(BaseTestCase):
     
     def test_cancelar_pedido_pendiente_cambia_estado(self):
@@ -2225,22 +2287,4 @@ class CancelarPedidoViewTest(BaseTestCase):
         self.assertEqual(
             self.pedido.estado,
             EstadoPedido.CANCELADO,
-        )
-        
-    def test_detalle_pedido_pendiente_muestra_boton_cancelar(self):
-        self.client.force_login(self.usuario)
-        
-        self.pedido.estado = EstadoPedido.PENDIENTE
-        self.pedido.save(update_fields=["estado"])
-        
-        response = self.client.get(
-            reverse(
-                "pedidos:detalle",
-                kwargs={"pk": self.pedido.pk},
-            )
-        )
-        
-        self.assertContains(
-            response,
-            "Cancelar pedido",
         )
