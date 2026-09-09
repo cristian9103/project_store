@@ -102,3 +102,10 @@ class Pedido(BaseModel):
         
     def __str__(self):
         return f"Pedido # {self.pk} - {self.cliente}"
+    
+    @property
+    def puede_cancelarse(self):
+        return self.estado in {
+            EstadoPedido.PENDIENTE,
+            EstadoPedido.PREPARACION,
+        }

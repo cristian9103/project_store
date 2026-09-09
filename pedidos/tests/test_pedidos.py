@@ -1,5 +1,3 @@
-from pedidos.admin import PedidoAdmin
-
 from .base import BaseTestCase
 from pedidos.services import (
     crear_pedido, 
@@ -3174,4 +3172,29 @@ class PedidosTestCase(BaseTestCase):
             self.producto.stock,
             stock_inicial,
         )
+        
+    def test_pedido_puede_cancelarse_en_estados_cancelables(self):
+        for estado in (
+            EstadoPedido.PENDIENTE,
+            EstadoPedido.PREPARACION,
+        ):
+            with self.subTest(estado=estado):
+                self.pedido.estado = estado
+                
+                self.assertTrue(
+                    self.pedido.puede_cancelarse
+                )
+                
+    def test_pedido_no_puede_cancelarse_en_estados_no_cancelables(self):
+        for estado in (
+            EstadoPedido.ENVIADO,
+            EstadoPedido.ENTREGADO,
+            EstadoPedido.CANCELADO,
+        ):
+            with self.subTest(estado=estado):
+                self.pedido.estado = estado
+                
+                self.assertFalse(
+                    self.pedido.puede_cancelarse
+                )
          
