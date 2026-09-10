@@ -4,3 +4,4 @@ from .checkout import *
 from .historial import *
 from .detalle import *
 from .cancelar import *
+from .pagos import *
