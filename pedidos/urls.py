@@ -15,4 +15,5 @@ urlpatterns = [
     path("mis-pedidos/", views.historial, name="historial"),
     path("mis-pedidos/<int:pk>/", views.detalle, name="detalle"),
     path("mis-pedidos/<int:pk>/cancelar/", views.cancelar, name="cancelar"),
+    path("mis-pedidos/<int:pk>/pago/", views.confirmar_pago, name="confirmar_pago"),
 ]

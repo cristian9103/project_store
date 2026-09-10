@@ -8,12 +8,16 @@ from decimal import Decimal
 
 from zoneinfo import ZoneInfo
 
-from pedidos.exceptions import EstadoPedidoInvalidoError
-
 from .base import BaseTestCase
 from clientes.models import Cliente, Direccion
 from usuarios.models import Usuario
-from pedidos.models import Pedido, EstadoPedido, DetallePedido
+from pedidos.models import (
+    Pedido, 
+    EstadoPedido,
+    DetallePedido, 
+    Pago,
+    EstadoPago,
+)
 from pedidos.services import ZERO, crear_pedido
 from catalogo.models import Producto
 
@@ -2244,12 +2248,12 @@ class CancelarPedidoViewTest(BaseTestCase):
         self.pedido.estado = EstadoPedido.ENVIADO
         self.pedido.save(update_fields=["estado"])
         
-        
         response = self.client.post(
             reverse(
                 "pedidos:cancelar",
                 kwargs={"pk": self.pedido.pk},
-            )
+            ),
+            follow=True,
         )
         
         self.assertContains(
@@ -2274,7 +2278,8 @@ class CancelarPedidoViewTest(BaseTestCase):
             reverse(
                 "pedidos:cancelar",
                 kwargs={"pk": self.pedido.pk},
-            )
+            ),
+            follow=True,
         )
         
         self.assertContains(
@@ -2312,4 +2317,43 @@ class CancelarPedidoViewTest(BaseTestCase):
         self.assertEqual(
             str(messages[0]),
             "El pedido no puede cancelarse en su estado actual.",
+        )
+        
+class ConfirmarPagoViewTest(BaseTestCase):
+    
+    def test_confirmar_pago_aprobado_cambia_pedido_a_preparacion(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = Pago.objects.create(
+            pedido=self.pedido,
+            estado=EstadoPago.PENDIENTE,
+        )
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:confirmar_pago",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
         )

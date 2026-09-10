@@ -25,6 +25,11 @@ class CancelarPedidoView(LoginRequiredMixin, View):
         except EstadoPedidoInvalidoError as error:
             messages.error(request, str(error))
         
+            return redirect(
+                "pedidos:detalle",
+                pk=pedido.pk,
+            )
+        
         return redirect(
             "pedidos:detalle",
             pk=pedido.pk,

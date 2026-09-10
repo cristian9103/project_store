@@ -8,10 +8,6 @@ Detalle pedido
 
 <h1>Pedido #{{ pedido.pk }}</h1>
 
-{% if error %}
-    <p>{{ error }}</p>
-{% endif %}
-
 <p>Estado: {{ pedido.get_estado_display }}</p>
 <p>Fecha: {{ pedido.fecha|date:"d/m/Y" }}</p>
 
