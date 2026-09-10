@@ -2357,3 +2357,77 @@ class ConfirmarPagoViewTest(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.PREPARACION,
         )
+        
+    def test_no_puede_confirmar_pago_de_otro_cliente(self):
+        self.client.force_login(self.usuario)
+        
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+        
+        otro_pedido = Pedido.objects.create(
+            cliente=otro_cliente,
+            estado=EstadoPedido.PENDIENTE,
+            subtotal=ZERO,
+            costo_envio=ZERO,
+            descuento=ZERO,
+            total=ZERO,
+        )
+        
+        Pago.objects.create(
+            pedido=otro_pedido,
+            estado=EstadoPago.PENDIENTE,
+        )
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:confirmar_pago",
+                kwargs={"pk": otro_pedido.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+        
+        otro_pedido.refresh_from_db()
+        
+        self.assertEqual(
+            otro_pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+    def test_confirmar_pago_sin_pago_pendiente_no_confirma_pedido(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:confirmar_pago",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
