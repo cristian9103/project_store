@@ -2431,3 +2431,61 @@ class ConfirmarPagoViewTest(BaseTestCase):
             self.pedido.estado,
             EstadoPedido.PENDIENTE,
         )
+        
+    def test_confirmar_pago_no_acepta_get(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:confirmar_pago",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            405,
+        )
+        
+    def test_confirmar_pago_ya_aprobado_muestra_error(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        pago = Pago.objects.create(
+            pedido=self.pedido,
+            estado=EstadoPago.APROBADO,
+        )
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:confirmar_pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
+            follow=True,
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PENDIENTE,
+        )
+        
+        self.assertContains(
+            response,
+            "El pago no está pendiente.",
+        )
