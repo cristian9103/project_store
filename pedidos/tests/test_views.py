@@ -2190,6 +2190,51 @@ class DetallePedidoViewTest(BaseTestCase):
             "Confirmar pago",
         )
         
+    def test_detalle_pedido_no_muestra_boton_confirmar_pago_sin_pago_pendiente(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertNotContains(
+            response,
+            "Confirmar pago",
+        )
+        
+    def test_detalle_pedido_boton_confirmar_pago_usa_post_y_url_correcta(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        Pago.objects.create(
+            pedido=self.pedido,
+            estado=EstadoPago.PENDIENTE,
+        )
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            f'action="/pedidos/mis-pedidos/{self.pedido.pk}/pago/"',
+            
+        )
+        
+        self.assertContains(
+            response,
+            'method="post"',
+        )
+        
 class CancelarPedidoViewTest(BaseTestCase):
     
     def test_cancelar_pedido_pendiente_cambia_estado(self):
