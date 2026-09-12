@@ -46,4 +46,11 @@ Detalle pedido
     </form>
 {% endif %}
 
+{% if pago_pendiente %}
+    <form method="post" action="{% url 'pedidos:confirmar_pago' pedido.pk %}">
+        {% csrf_token %}
+        <button type="submit">Confirmar pago</button>
+    </form>
+{% endif %}
+
 {% endblock %}

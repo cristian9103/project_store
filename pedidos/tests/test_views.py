@@ -2154,6 +2154,41 @@ class DetallePedidoViewTest(BaseTestCase):
                     response,
                     "Cancelar pedido",
                 )
+                
+    def test_detalle_pedido_muestra_boton_confirmar_pago(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        Pago.objects.create(
+            pedido=self.pedido,
+            estado=EstadoPago.PENDIENTE,
+        )
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            "Confirmar pago",
+        )
         
 class CancelarPedidoViewTest(BaseTestCase):
     
