@@ -155,3 +155,58 @@ class ProductoDetailViewTest(BaseTestCase):
             self.pedido.total,
             Decimal("100_000"),
         )
+        
+    def test_detalle_producto_agregar_al_carrito_requiere_login(self):
+        response = self.client.post(
+            reverse(
+                "pedidos:agregar_producto",
+                kwargs={"pk": self.producto.pk},
+            ),
+            data={
+                "cantidad": 2,
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        self.assertIn(
+            "/usuarios/login/",
+            response.url,
+        )
+        
+        self.assertFalse(
+            self.pedido.detalles_pedido.exists()
+        )
+        
+    def test_detalle_producto_agregar_al_carrito_cantidad_invalida(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:agregar_producto",
+                kwargs={"pk": self.producto.pk},
+            ),
+            data={
+                "cantidad": 0,
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse(
+                "catalogo:detalle_producto",
+                kwargs={"pk": self.producto.pk},
+            ),
+        )
+        
+        self.assertFalse(
+            self.pedido.detalles_pedido.exists()
+        )
