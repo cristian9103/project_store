@@ -9,3 +9,5 @@ class UsuarioLoginView(LoginView):
     
     def get_success_url(self):
         return self.get_default_redirect_url()
+    
+login_view = UsuarioLoginView.as_view()

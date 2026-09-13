@@ -8,7 +8,7 @@ from decimal import Decimal
 
 from zoneinfo import ZoneInfo
 
-from ...core.tests.base import BaseTestCase
+from core.tests import BaseTestCase
 from clientes.models import Cliente, Direccion
 from usuarios.models import Usuario
 from pedidos.models import (

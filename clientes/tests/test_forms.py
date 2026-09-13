@@ -1,4 +1,4 @@
-from pedidos.tests import BaseTestCase
+from core.tests import BaseTestCase
 
 from clientes.forms import DireccionForm
 

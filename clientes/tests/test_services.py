@@ -7,7 +7,7 @@ from clientes.services import (
     eliminar_direccion,
 )
 from clientes.models import Direccion
-from pedidos.tests import BaseTestCase
+from core.tests import BaseTestCase
 
 class DireccionTestCase(BaseTestCase):
 

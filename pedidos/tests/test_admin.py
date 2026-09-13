@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from pedidos.models import EstadoPedido, Pedido
 from pedidos.admin import PedidoAdmin
-from pedidos.tests import BaseTestCase
+from core.tests import BaseTestCase
 from pedidos.exceptions import EstadoPedidoInvalidoError
 from clientes.models import Cliente
 

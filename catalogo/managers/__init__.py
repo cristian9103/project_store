@@ -1,1 +1,5 @@
-from .producto import *
+from .producto import ProductoQuerySet
+
+__all__ = [
+    "ProductoQuerySet",
+]

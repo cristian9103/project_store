@@ -30,3 +30,5 @@ class RegistroView(FormView):
         )
         
         return super().form_valid(form)
+    
+registro_view = RegistroView.as_view()

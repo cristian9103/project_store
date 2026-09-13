@@ -1,4 +1,4 @@
-from ...core.tests.base import BaseTestCase
+from core.tests import BaseTestCase
 from catalogo.models import Producto
 from pedidos.services import (
     agregar_producto, 

@@ -26,4 +26,4 @@ class DetallePedidoView(LoginRequiredMixin, DetailView):
         
         return context
        
-detalle = DetallePedidoView.as_view()
+detalle_view = DetallePedidoView.as_view()

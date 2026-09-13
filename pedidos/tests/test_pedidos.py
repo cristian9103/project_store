@@ -1,4 +1,4 @@
-from ...core.tests.base import BaseTestCase
+from core.tests import BaseTestCase
 from pedidos.services import (
     crear_pedido, 
     confirmar_pedido,

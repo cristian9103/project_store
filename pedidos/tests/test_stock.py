@@ -1,6 +1,6 @@
 from pedidos.services import validar_stock, descontar_stock
 from pedidos.exceptions import StockInsuficienteError, CantidadInvalidaError
-from ...core.tests.base import BaseTestCase
+from core.tests import BaseTestCase
 
 class StockTestCase(BaseTestCase):
     

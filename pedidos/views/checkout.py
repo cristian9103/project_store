@@ -123,5 +123,5 @@ class CheckoutExitoView(LoginRequiredMixin, DetailView):
         )
 
 
-checkout = CheckoutView.as_view()
+checkout_view = CheckoutView.as_view()
 checkout_exito = CheckoutExitoView.as_view()

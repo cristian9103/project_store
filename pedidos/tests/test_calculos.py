@@ -9,7 +9,7 @@ from pedidos.services import (
 ) 
 from catalogo.models import Producto
 
-from ...core.tests.base import BaseTestCase
+from core.tests import BaseTestCase
 
 
 class CalculosTestCase(BaseTestCase):

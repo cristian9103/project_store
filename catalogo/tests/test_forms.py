@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from catalogo.forms import AgregarAlCarritoForm
 from core.tests.base import BaseTestCase
 

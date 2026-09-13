@@ -17,4 +17,4 @@ class HistorialPedidosView(LoginRequiredMixin, ListView):
             cliente=cliente
         )
     
-historial = HistorialPedidosView.as_view()
+historial_view = HistorialPedidosView.as_view()

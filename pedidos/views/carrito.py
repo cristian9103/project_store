@@ -10,9 +10,9 @@ from clientes.selectors import obtener_cliente
 
 from pedidos.services import (
     crear_pedido, 
-    agregar_producto, 
-    actualizar_cantidad,
-    vaciar_carrito,
+    agregar_producto as agregar_producto_service, 
+    actualizar_cantidad as actualizar_cantidad_service,
+    vaciar_carrito as vaciar_carrito_service,
 )
 from pedidos.forms import ActualizarCantidadForm
 from pedidos.selectors import obtener_pedido_pendiente
@@ -48,7 +48,7 @@ class AgregarAlCarritoView(LoginRequiredMixin, View):
         
         try:
         
-            agregar_producto(
+            agregar_producto_service(
                 pedido=pedido,
                 producto=producto,
                 cantidad=form.cleaned_data["cantidad"],
@@ -110,7 +110,7 @@ class ActualizarCantidadView(LoginRequiredMixin, View):
             return redirect("pedidos:carrito")
         
         try:
-            actualizar_cantidad(
+            actualizar_cantidad_service(
                 pedido=detalle.pedido,
                 producto=detalle.producto,
                 nueva_cantidad=form.cleaned_data["cantidad"],
@@ -142,7 +142,7 @@ class VaciarCarritoView(LoginRequiredMixin, View):
         pedido = obtener_pedido_pendiente(cliente)
         
         if pedido:
-            vaciar_carrito(pedido)
+            vaciar_carrito_service(pedido)
             
             messages.success(
                 request,
@@ -150,3 +150,8 @@ class VaciarCarritoView(LoginRequiredMixin, View):
             )
             
         return redirect("pedidos:carrito")
+    
+agregar_producto = AgregarAlCarritoView.as_view()
+carrito_view = CarritoDetailView.as_view()
+actualizar_cantidad = ActualizarCantidadView.as_view()
+vaciar_carrito = VaciarCarritoView.as_view()

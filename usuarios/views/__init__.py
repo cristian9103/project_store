@@ -1,9 +1,9 @@
-from .login import UsuarioLoginView
-from .logout import UsuarioLogoutView
-from .registro import RegistroView
+from .login import login_view
+from .logout import logout_view
+from .registro import registro_view
 
 __all__ = [
-    "UsuarioLoginView",
-    "UsuarioLogoutView",
-    "RegistroView"
+    "login_view",
+    "logout_view",
+    "registro_view",
 ]

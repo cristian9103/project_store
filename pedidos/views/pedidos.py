@@ -5,7 +5,7 @@ from django.views import View
 
 from clientes.selectors import obtener_cliente
 from pedidos.selectors import obtener_pedido_pendiente
-from pedidos.services import confirmar_pedido
+from pedidos.services import confirmar_pedido as confirmar_pedido_service
 from pedidos.exceptions import (
     PedidoVacioError,
     EstadoPedidoInvalidoError,
@@ -28,7 +28,7 @@ class ConfirmarPedidoView(LoginRequiredMixin, View):
             return redirect("pedidos:carrito")
         
         try:
-            confirmar_pedido(pedido)
+            confirmar_pedido_service(pedido)
         except (
             PedidoVacioError,
             EstadoPedidoInvalidoError,
@@ -48,3 +48,5 @@ class ConfirmarPedidoView(LoginRequiredMixin, View):
         )
         
         return redirect("pedidos:carrito")
+    
+confirmar_pedido = ConfirmarPedidoView.as_view()

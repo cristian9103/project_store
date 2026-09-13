@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
 
-from ...core.tests.base import BaseTestCase
+from core.tests import BaseTestCase
 from pedidos.models import (
     DetallePedido,
     Pedido,

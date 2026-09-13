@@ -35,4 +35,4 @@ class CancelarPedidoView(LoginRequiredMixin, View):
             pk=pedido.pk,
         )
         
-cancelar = CancelarPedidoView.as_view()
+cancelar_view = CancelarPedidoView.as_view()
