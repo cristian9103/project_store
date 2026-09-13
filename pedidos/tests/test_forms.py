@@ -1,5 +1,5 @@
 from pedidos.forms import CheckoutForm
-from .base import BaseTestCase
+from ...core.tests.base import BaseTestCase
 
 class FormsTestCase(BaseTestCase):
     

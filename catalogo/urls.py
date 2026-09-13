@@ -1,13 +1,10 @@
 from django.urls import path
 
-from .views import (
-    ProductoListView,
-    ProductoDetailView,
-)
+from . import views
 
 app_name = "catalogo"
 
 urlpatterns = [
-    path("", ProductoListView.as_view(), name="lista_productos"),
-    path("<int:pk>/", ProductoDetailView.as_view(), name="detalle_producto"),
+    path("", views.lista_productos, name="lista_productos"),
+    path("<int:pk>/", views.detalle_producto, name="detalle_producto"),
 ]

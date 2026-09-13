@@ -8,7 +8,7 @@ from decimal import Decimal
 
 from zoneinfo import ZoneInfo
 
-from .base import BaseTestCase
+from ...core.tests.base import BaseTestCase
 from clientes.models import Cliente, Direccion
 from usuarios.models import Usuario
 from pedidos.models import (
@@ -2233,6 +2233,43 @@ class DetallePedidoViewTest(BaseTestCase):
         self.assertContains(
             response,
             'method="post"',
+        )
+        
+    def test_confirmar_pago_desde_detalle_cambia_pedido_a_preparacion(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        Pago.objects.create(
+            pedido=self.pedido,
+            estado=EstadoPago.PENDIENTE,
+        )
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:confirmar_pago",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
         )
         
 class CancelarPedidoViewTest(BaseTestCase):

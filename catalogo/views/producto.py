@@ -58,3 +58,6 @@ class ProductoDetailView(DetailView):
         )
         
         return context
+    
+lista_productos = ProductoListView.as_view()
+detalle_producto = ProductoDetailView.as_view()

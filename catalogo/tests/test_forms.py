@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from catalogo.forms import AgregarAlCarritoForm
-from pedidos.tests.base import BaseTestCase
+from core.tests.base import BaseTestCase
 
 class AgregarAlCarritoFormTest(BaseTestCase):
     
