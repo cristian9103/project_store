@@ -88,6 +88,22 @@ class CarritoDetailViewTest(BaseTestCase):
             f"{login_url}?next={carrito_url}"
         )
         
+    def test_carrito_muestra_producto_agregado(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle(
+            cantidad=2,
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            self.producto.nombre,
+        )
+        
 class AgregarAlCarritoViewTest(BaseTestCase):
     
     def test_agregar_producto_correctamente(self):

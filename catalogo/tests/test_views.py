@@ -210,3 +210,45 @@ class ProductoDetailViewTest(BaseTestCase):
         self.assertFalse(
             self.pedido.detalles_pedido.exists()
         )
+        
+    def test_detalle_producto_agregar_al_carrito_stock_insuficiente(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:agregar_producto",
+                kwargs={"pk": self.producto.pk},
+            ),
+            data={
+                "cantidad": 21,
+            },
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse(
+                "catalogo:detalle_producto",
+                kwargs={"pk": self.producto.pk},
+            ),
+        )
+        
+        self.assertFalse(
+            self.pedido.detalles_pedido.exists()
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.subtotal,
+            Decimal("0"),
+        )
+        
+        self.assertEqual(
+            self.pedido.total,
+            Decimal("0"),
+        )
