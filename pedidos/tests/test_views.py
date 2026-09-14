@@ -18,7 +18,7 @@ from pedidos.models import (
     Pago,
     EstadoPago,
 )
-from pedidos.services import ZERO, crear_pedido
+from pedidos.services import ZERO, crear_pedido, actualizar_totales
 from catalogo.models import Producto
 
 class CarritoDetailViewTest(BaseTestCase):
@@ -135,6 +135,42 @@ class CarritoDetailViewTest(BaseTestCase):
         self.assertContains(
             response,
             f"${self.producto.precio_venta}",
+        )
+        
+    def test_carrito_muestra_subtotal_producto(self):
+        self.client.force_login(self.usuario)
+        
+        detalle = self.crear_detalle(
+            cantidad=2,
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            f"${detalle.subtotal}",
+        )
+        
+    def test_carrito_muestra_subtotal_pedido(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle(
+            cantidad=2,
+        )
+        
+        actualizar_totales(self.pedido)
+        
+        self.pedido.refresh_from_db()
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            f"Subtotal: $40000,00",
         )
         
 class AgregarAlCarritoViewTest(BaseTestCase):
