@@ -256,6 +256,30 @@ class CarritoDetailViewTest(BaseTestCase):
             reverse("catalogo:lista_productos")
         )
         
+    def test_carrito_muestra_formulario_vaciar_carrito(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            reverse("pedidos:vaciar_carrito")
+        )
+        
+    def test_carrito_muestra_formulario_confirmar_pedido(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            reverse("pedidos:confirmar_pedido")
+        )
+        
 class AgregarAlCarritoViewTest(BaseTestCase):
     
     def test_agregar_producto_correctamente(self):
