@@ -104,6 +104,39 @@ class CarritoDetailViewTest(BaseTestCase):
             self.producto.nombre,
         )
         
+    def test_carrito_muestra_cantidad_producto(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle(
+            cantidad=2,
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            '<input type="number" name="cantidad" value="2" min="0">',
+            html=True,
+        )
+        
+    def test_carrito_muestra_precio_unitario(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle(
+            cantidad=2,
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            f"${self.producto.precio_venta}",
+        )
+        
 class AgregarAlCarritoViewTest(BaseTestCase):
     
     def test_agregar_producto_correctamente(self):

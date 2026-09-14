@@ -79,7 +79,7 @@ class AgregarAlCarritoView(LoginRequiredMixin, View):
       
 class CarritoDetailView(LoginRequiredMixin, TemplateView):
     
-    template_name = "pedidos/carrito.html"
+    template_name = "pedidos/carrito/carrito.html"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
