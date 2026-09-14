@@ -173,6 +173,50 @@ class CarritoDetailViewTest(BaseTestCase):
             f"Subtotal: $40000,00",
         )
         
+    def test_carrito_muestra_costo_envio(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle(
+            cantidad=2,
+        )
+        
+        self.pedido.costo_envio = Decimal("5_000")
+        self.pedido.save(
+            update_fields=["costo_envio"]
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            "Envío: $5000,00",
+        )
+        
+    def test_carrito_muestra_descuento(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle(
+            cantidad=2,
+        )
+        
+        self.pedido.descuento = Decimal("3_000")
+        self.pedido.save(
+            update_fields=["descuento"]
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            "Descuento: $3000,00",
+        )
+        
 class AgregarAlCarritoViewTest(BaseTestCase):
     
     def test_agregar_producto_correctamente(self):
