@@ -217,6 +217,45 @@ class CarritoDetailViewTest(BaseTestCase):
             "Descuento: $3000,00",
         )
         
+    def test_carrito_muestra_total_pedido(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle(
+            cantidad=2,
+        )
+        
+        self.pedido.costo_envio = Decimal("5_000")
+        self.pedido.descuento = Decimal("3_000")
+        self.pedido.total = Decimal("42_000")
+        self.pedido.save(
+            update_fields=[
+                "costo_envio",
+                "descuento",
+                "total",
+            ]
+        )
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            "Total: $42000,00"
+        )
+        
+    def test_carrito_muestra_enlace_seguir_comprando(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            reverse("catalogo:lista_productos")
+        )
+        
 class AgregarAlCarritoViewTest(BaseTestCase):
     
     def test_agregar_producto_correctamente(self):
