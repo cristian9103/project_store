@@ -1742,6 +1742,20 @@ class CheckoutViewTest(BaseTestCase):
             pedido,
         )
         
+    def test_checkout_muestra_enlace_al_pago(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse("pedidos:checkout")
+        )
+        
+        self.assertContains(
+            response,
+            reverse(
+                "pedidos:confirmar_pago"
+            )
+        )
+        
 class HistorialViewTest(BaseTestCase):
         
     def test_historial_muestra_los_pedidos_del_cliente(self):
