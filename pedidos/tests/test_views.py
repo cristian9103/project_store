@@ -280,6 +280,18 @@ class CarritoDetailViewTest(BaseTestCase):
             reverse("pedidos:confirmar_pedido")
         )
         
+    def test_carrito_muestra_enlace_al_checkout(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertContains(
+            response,
+            reverse("pedidos:checkout")
+        )
+        
 class AgregarAlCarritoViewTest(BaseTestCase):
     
     def test_agregar_producto_correctamente(self):

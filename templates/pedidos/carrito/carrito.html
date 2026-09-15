@@ -72,16 +72,9 @@ Mi carrito
             </button>
         </form>
 
-        <form 
-            action="{% url 'pedidos:confirmar_pedido' %}" 
-            method="post"
-        >
-            {% csrf_token %}
-
-            <button type="submit">
-                Confirmar pedido
-            </button>
-        </form>
+        <a href="{% url 'pedidos:checkout' %}">
+            Continuar con la compra
+        </a>
     </div>
 
 {% else %}
