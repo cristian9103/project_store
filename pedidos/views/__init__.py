@@ -12,7 +12,10 @@ from .checkout import (
 from .historial import historial_view
 from .detalle import detalle_view
 from .cancelar import cancelar_view
-from .pagos import confirmar_pago
+from .pagos import (
+    confirmar_pago,
+    iniciar_pago,
+)
 
 __all__ = [
     "agregar_producto",
@@ -26,4 +29,5 @@ __all__ = [
     "detalle_view",
     "cancelar_view",
     "confirmar_pago",
+    "iniciar_pago",
 ]

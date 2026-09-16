@@ -2824,3 +2824,46 @@ class ConfirmarPagoViewTest(BaseTestCase):
             response,
             "El pago no está pendiente.",
         )
+        
+class IniciarPagoViewTest(BaseTestCase):
+    
+    def test_iniciar_pago_crea_pago_pendiente(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"]
+        )
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:iniciar_pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        pago = Pago.objects.get(
+            pedido=self.pedido
+        )
+        
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.PENDIENTE,
+        )
