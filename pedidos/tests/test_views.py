@@ -2944,3 +2944,18 @@ class PagoViewTest(BaseTestCase):
             response,
             "Pago pendiente",
         )
+        
+    def test_pago_de_otro_cliente_devuelve_404(self):
+        self.client.force_login(self.otro_usuario)
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404,
+        )

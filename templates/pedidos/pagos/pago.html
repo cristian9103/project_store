@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}
+Pago
+{% endblock %}
+
+{% block content %}
+
+<h1>Pago</h1>
+
+{% if pago %}
+    <p>Pago pendiente</p>
+{% else %}
+    <p>No existe un pago pendiente.</p>
+{% endif %}
+
+{% endblock %}
