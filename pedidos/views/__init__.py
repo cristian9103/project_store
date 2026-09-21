@@ -15,6 +15,7 @@ from .cancelar import cancelar_view
 from .pagos import (
     confirmar_pago,
     iniciar_pago,
+    pago,
 )
 
 __all__ = [
@@ -30,4 +31,5 @@ __all__ = [
     "cancelar_view",
     "confirmar_pago",
     "iniciar_pago",
+    "pago",
 ]

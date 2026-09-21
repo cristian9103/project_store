@@ -1,10 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
 from clientes.selectors import obtener_cliente
-from pedidos.models import Pedido
+from pedidos.models import Pedido, EstadoPago
 from pedidos.services.pagos import (
     confirmar_pago as confirmar_pago_service,
     iniciar_pago as iniciar_pago_service,
@@ -65,9 +65,34 @@ class IniciarPagoView(LoginRequiredMixin, View):
         iniciar_pago_service(pedido)
         
         return redirect(
-            "pedidos:confirmar_pago",
+            "pedidos:pago",
             pk=pedido.pk,
+        )
+        
+class PagoView(LoginRequiredMixin, View):
+    
+    def get(self, request, pk):
+        cliente = obtener_cliente(request.user)
+        
+        pedido = get_object_or_404(
+            Pedido,
+            pk=pk,
+            cliente=cliente,
+        )
+        
+        pago = pedido.pagos.filter(
+            estado=EstadoPago.PENDIENTE,
+        ).first()
+        
+        return render(
+            request,
+            "pedidos/pagos/pago.html",
+            {
+                "pedido": pedido,
+                "pago": pago,
+            },
         )
         
 confirmar_pago = ConfirmarPagoView.as_view()
 iniciar_pago = IniciarPagoView.as_view()
+pago = PagoView.as_view()
