@@ -1761,6 +1761,39 @@ class CheckoutViewTest(BaseTestCase):
             )
         )
         
+    def test_checkout_iniciar_pago_redirige_al_pago(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 1 # 2-3",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"],
+        )
+        
+        response =self.client.post(
+            reverse("pedidos:checkout"),
+            {
+                "accion": "confirmar",
+            },
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse(
+                "pedidos:pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+        
 class HistorialViewTest(BaseTestCase):
         
     def test_historial_muestra_los_pedidos_del_cliente(self):
