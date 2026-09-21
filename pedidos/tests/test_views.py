@@ -18,7 +18,12 @@ from pedidos.models import (
     Pago,
     EstadoPago,
 )
-from pedidos.services import ZERO, crear_pedido, actualizar_totales
+from pedidos.services import (
+    ZERO, 
+    crear_pedido, 
+    actualizar_totales, 
+    iniciar_pago,
+)
 from catalogo.models import Producto
 
 class CarritoDetailViewTest(BaseTestCase):
@@ -2866,4 +2871,76 @@ class IniciarPagoViewTest(BaseTestCase):
         self.assertEqual(
             pago.estado,
             EstadoPago.PENDIENTE,
+        )
+        
+    def test_iniciar_pago_redirige_a_confirmar_pago(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 1 # 2-3",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"]
+        )
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:iniciar_pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse(
+                "pedidos:confirmar_pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+        
+class PagoViewTest(BaseTestCase):
+    
+    def test_pago_muestra_pago_pendiente(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 1 # 2-3",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"]
+        )
+        
+        iniciar_pago(self.pedido)
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertContains(
+            response,
+            "Pago pendiente",
         )

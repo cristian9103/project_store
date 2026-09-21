@@ -65,7 +65,7 @@ class IniciarPagoView(LoginRequiredMixin, View):
         iniciar_pago_service(pedido)
         
         return redirect(
-            "pedidos:detalle",
+            "pedidos:confirmar_pago",
             pk=pedido.pk,
         )
         
