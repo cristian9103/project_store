@@ -10,6 +10,16 @@ Pago
 
 {% if pago %}
     <p>Pago pendiente</p>
+
+    <form 
+        action="{% url 'pedidos:confirmar_pago' pedido.pk %}" 
+        method="post"
+    >
+        {% csrf_token %}
+        <button type="submit">
+            Confirmar pago
+        </button>
+    </form>
 {% else %}
     <p>No existe un pago pendiente.</p>
 {% endif %}

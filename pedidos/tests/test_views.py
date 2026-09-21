@@ -2959,3 +2959,35 @@ class PagoViewTest(BaseTestCase):
             response.status_code,
             404,
         )
+        
+    def test_pago_muestra_boton_para_confirmar_pago(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 1 # 2-3",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"]
+        )
+        
+        iniciar_pago(self.pedido)
+        
+        response = self.client.get(
+            reverse(
+                "pedidos:pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+        
+        self.assertContains(
+            response,
+            "Confirmar pago",
+        )
