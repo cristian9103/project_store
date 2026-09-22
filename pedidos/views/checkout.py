@@ -57,28 +57,8 @@ class CheckoutView(LoginRequiredMixin, View):
         accion = request.POST.get("accion")
         
         if accion == "confirmar":
-            try:
-                confirmar_pedido(pedido)
-                
-            except (
-                PedidoSinDireccionError,
-                PedidoVacioError,
-                StockInsuficienteError,
-            ) as error:
-                
-                return render(
-                    request,
-                    "pedidos/checkout/checkout.html",
-                    {
-                        "pedido": pedido,
-                        "direcciones": listar_direcciones(cliente),
-                        "form": CheckoutForm(),
-                        "error": str(error),
-                    },
-                )
-            
             return redirect(
-                "pedidos:checkout_exito",
+                "pedidos:pago",
                 pk=pedido.pk,
             )
         
