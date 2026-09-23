@@ -11,15 +11,9 @@ from clientes.selectors import (
 from pedidos.services import (
     crear_pedido,
     asignar_direccion_pedido,
-    confirmar_pedido,
     obtener_pedido_pendiente,
 )
 from pedidos.forms import CheckoutForm
-from pedidos.exceptions import (
-    PedidoSinDireccionError,
-    PedidoVacioError,
-    StockInsuficienteError,
-)
 from pedidos.models import Pedido, EstadoPedido
 
 class CheckoutView(LoginRequiredMixin, View):
@@ -53,14 +47,6 @@ class CheckoutView(LoginRequiredMixin, View):
         
         if pedido is None:
             pedido = crear_pedido(cliente)
-        
-        accion = request.POST.get("accion")
-        
-        if accion == "iniciar_pago":
-            return redirect(
-                "pedidos:pago",
-                pk=pedido.pk,
-            )
         
         form = CheckoutForm(request.POST)
         

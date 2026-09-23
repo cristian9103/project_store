@@ -140,14 +140,12 @@ Checkout
         </div>
     {% endif %}
 
-    <form method="post">
+    <form 
+        method="post"
+        action="{% url 'pedidos:iniciar_pago' pedido.pk %}"
+    >
         {% csrf_token %}
 
-        <input 
-            type="hidden" 
-            name="accion"
-            value="iniciar_pago"
-        >
         <button type="submit">
             Continuar al pago
         </button>
