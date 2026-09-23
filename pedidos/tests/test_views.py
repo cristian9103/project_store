@@ -2629,6 +2629,21 @@ class IniciarPagoViewTest(BaseTestCase):
             reverse("pedidos:checkout"),
         )
         
+    def test_iniciar_pago_pedido_vacio_redirige_al_carrito(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:iniciar_pago",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito"),
+        )
+        
 class PagoViewTest(BaseTestCase):
     
     def test_pago_muestra_pago_pendiente(self):
