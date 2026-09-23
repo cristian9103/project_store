@@ -1452,67 +1452,16 @@ class CheckoutViewTest(BaseTestCase):
             pedido,
         )
         
-    def test_checkout_iniciar_pago_redirige_al_pago(self):
+    def test_checkout_muestra_formulario_para_iniciar_pago(self):
         self.client.force_login(self.usuario)
         
-        self.crear_detalle()
-        
-        direccion = Direccion.objects.create(
-            cliente=self.cliente,
-            nombre="Casa",
-            direccion="Calle 1 # 2-3",
-            ciudad="Medellín",
-            departamento="Antioquia",
+        response = self.client.get(
+            reverse("pedidos:checkout")
         )
         
-        self.pedido.direccion_envio = direccion
-        self.pedido.save(
-            update_fields=["direccion_envio"],
-        )
-        
-        response =self.client.post(
-            reverse("pedidos:checkout"),
-            {
-                "accion": "iniciar_pago",
-            },
-        )
-        
-        self.assertRedirects(
+        self.assertContains(
             response,
-            reverse(
-                "pedidos:pago",
-                kwargs={"pk": self.pedido.pk},
-            ),
-        )
-        
-    def test_checkout_iniciar_pago_crea_pago_pendiente(self):
-        self.client.force_login(self.usuario)
-        
-        self.crear_detalle()
-        
-        direccion = Direccion.objects.create(
-            cliente=self.cliente,
-            nombre="Casa",
-            direccion="Calle 1 # 2-3",
-            ciudad="Medellín",
-            departamento="Antioquia",
-        )
-        
-        self.pedido.direccion_envio = direccion
-        self.pedido.save(
-            update_fields=["direccion_envio"],
-        )
-        
-        self.client.post(
-            reverse("pedidos:checkout"),
-            {"accion": "iniciar_pago"},
-        )
-        
-        self.assertTrue(
-            Pago.objects.filter(
-                pedido=self.pedido,
-                estado=EstadoPago.PENDIENTE,
-            ).exists()
+            f'action="{reverse("pedidos:iniciar_pago", kwargs={"pk": self.pedido.pk})}"'
         )
         
 class HistorialViewTest(BaseTestCase):
@@ -2661,6 +2610,23 @@ class IniciarPagoViewTest(BaseTestCase):
                 "pedidos:pago",
                 kwargs={"pk": self.pedido.pk},
             ),
+        )
+        
+    def test_iniciar_pago_sin_direccion_redirige_al_checkout(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+
+        response = self.client.post(
+            reverse(
+                "pedidos:iniciar_pago",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("pedidos:checkout"),
         )
         
 class PagoViewTest(BaseTestCase):

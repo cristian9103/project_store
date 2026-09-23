@@ -9,7 +9,10 @@ from pedidos.services.pagos import (
     confirmar_pago as confirmar_pago_service,
     iniciar_pago as iniciar_pago_service,
 )
-from pedidos.exceptions import EstadoPagoInvalidoError
+from pedidos.exceptions import (
+    EstadoPagoInvalidoError,
+    PedidoSinDireccionError,
+)
 
 class ConfirmarPagoView(LoginRequiredMixin, View):
     
@@ -62,7 +65,16 @@ class IniciarPagoView(LoginRequiredMixin, View):
             cliente=cliente,
         )
         
-        iniciar_pago_service(pedido)
+        try:
+            iniciar_pago_service(pedido)
+        except PedidoSinDireccionError as error:
+            messages.error(
+                request,
+                str(error),
+            )
+            return redirect(
+                "pedidos:checkout",
+            )
         
         return redirect(
             "pedidos:pago",
