@@ -15,7 +15,7 @@ urlpatterns = [
     path("mis-pedidos/", views.historial_view, name="historial"),
     path("mis-pedidos/<int:pk>/", views.detalle_view, name="detalle"),
     path("mis-pedidos/<int:pk>/cancelar/", views.cancelar_view, name="cancelar"),
-    path("mis-pedidos/<int:pk>/pago/confirmar", views.confirmar_pago, name="confirmar_pago"),
+    path("mis-pedidos/<int:pk>/pago/confirmar/", views.confirmar_pago, name="confirmar_pago"),
     path("mis-pedidos/<int:pk>/pago/iniciar/", views.iniciar_pago, name="iniciar_pago"),
     path("mis-pedidos/<int:pk>/pago/", views.pago, name="pago"),
 ]

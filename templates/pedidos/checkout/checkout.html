@@ -132,7 +132,7 @@ Checkout
 </section>
 
 <section>
-    <h2>Confirmar pedido</h2>
+    <h2>Continuar con el pago</h2>
 
     {% if error %}
         <div>
@@ -146,10 +146,10 @@ Checkout
         <input 
             type="hidden" 
             name="accion"
-            value="confirmar"
+            value="iniciar_pago"
         >
         <button type="submit">
-            Confirmar pedido
+            Continuar al pago
         </button>
     </form>
 </section>

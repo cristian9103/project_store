@@ -273,18 +273,6 @@ class CarritoDetailViewTest(BaseTestCase):
             reverse("pedidos:vaciar_carrito")
         )
         
-    def test_carrito_muestra_formulario_confirmar_pedido(self):
-        self.client.force_login(self.usuario)
-        
-        response = self.client.get(
-            reverse("pedidos:carrito")
-        )
-        
-        self.assertContains(
-            response,
-            reverse("pedidos:confirmar_pedido")
-        )
-        
     def test_carrito_muestra_enlace_al_checkout(self):
         self.client.force_login(self.usuario)
         
@@ -1333,7 +1321,7 @@ class CheckoutViewTest(BaseTestCase):
             "050001",
         )
         
-    def test_checkout_muestra_boton_confirmar_pedido(self):
+    def test_checkout_muestra_boton_continuar_al_pago(self):
         self.client.force_login(self.usuario)
         
         response = self.client.get(
@@ -1347,7 +1335,7 @@ class CheckoutViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            "Confirmar pedido",
+            "Continuar al pago",
         )
         
     def test_checkout_muestra_pedido_y_direcciones_del_cliente(self):
@@ -1485,7 +1473,7 @@ class CheckoutViewTest(BaseTestCase):
         response =self.client.post(
             reverse("pedidos:checkout"),
             {
-                "accion": "confirmar",
+                "accion": "iniciar_pago",
             },
         )
         
@@ -1495,6 +1483,36 @@ class CheckoutViewTest(BaseTestCase):
                 "pedidos:pago",
                 kwargs={"pk": self.pedido.pk},
             ),
+        )
+        
+    def test_checkout_iniciar_pago_crea_pago_pendiente(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 1 # 2-3",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"],
+        )
+        
+        self.client.post(
+            reverse("pedidos:checkout"),
+            {"accion": "iniciar_pago"},
+        )
+        
+        self.assertTrue(
+            Pago.objects.filter(
+                pedido=self.pedido,
+                estado=EstadoPago.PENDIENTE,
+            ).exists()
         )
         
 class HistorialViewTest(BaseTestCase):
@@ -2185,7 +2203,10 @@ class DetallePedidoViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            f'action="/pedidos/mis-pedidos/{self.pedido.pk}/pago/"',
+            reverse(
+                "pedidos:confirmar_pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
             
         )
         
@@ -2609,7 +2630,7 @@ class IniciarPagoViewTest(BaseTestCase):
             EstadoPago.PENDIENTE,
         )
         
-    def test_iniciar_pago_redirige_a_confirmar_pago(self):
+    def test_iniciar_pago_redirige_al_pago(self):
         self.client.force_login(self.usuario)
         
         self.crear_detalle()
@@ -2637,7 +2658,7 @@ class IniciarPagoViewTest(BaseTestCase):
         self.assertRedirects(
             response,
             reverse(
-                "pedidos:confirmar_pago",
+                "pedidos:pago",
                 kwargs={"pk": self.pedido.pk},
             ),
         )

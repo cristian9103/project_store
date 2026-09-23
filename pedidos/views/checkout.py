@@ -56,7 +56,7 @@ class CheckoutView(LoginRequiredMixin, View):
         
         accion = request.POST.get("accion")
         
-        if accion == "confirmar":
+        if accion == "iniciar_pago":
             return redirect(
                 "pedidos:pago",
                 pk=pedido.pk,
