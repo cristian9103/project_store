@@ -12,6 +12,7 @@ from pedidos.services.pagos import (
 from pedidos.exceptions import (
     EstadoPagoInvalidoError,
     PedidoSinDireccionError,
+    PedidoVacioError,
 )
 
 class ConfirmarPagoView(LoginRequiredMixin, View):
@@ -48,9 +49,14 @@ class ConfirmarPagoView(LoginRequiredMixin, View):
                 request,
                 str(error),
             )
+            
+            return redirect(
+                "pedidos:detalle",
+                pk=pedido.pk,
+            )
         
         return redirect(
-            "pedidos:detalle",
+            "pedidos:checkout_exito",
             pk=pedido.pk,
         )
         
@@ -74,6 +80,15 @@ class IniciarPagoView(LoginRequiredMixin, View):
             )
             return redirect(
                 "pedidos:checkout",
+            )
+            
+        except PedidoVacioError as error:
+            messages.error(
+                request,
+                str(error),
+            )
+            return redirect(
+                "pedidos:carrito",
             )
         
         return redirect(
