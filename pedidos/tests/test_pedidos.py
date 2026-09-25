@@ -1,3 +1,5 @@
+from django.urls import reverse
+
 from core.tests import BaseTestCase
 from pedidos.services import (
     crear_pedido, 
@@ -3197,4 +3199,60 @@ class PedidosTestCase(BaseTestCase):
                 self.assertFalse(
                     self.pedido.puede_cancelarse
                 )
+                
+    def test_confirmar_pago_selecciona_pago_pendiente_entre_varios_intentos(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        Pago.objects.create(
+            pedido=self.pedido,
+            estado=EstadoPago.RECHAZADO,
+        )
+        
+        pago_pendiente = Pago.objects.create(
+            pedido=self.pedido,
+            estado=EstadoPago.PENDIENTE,
+        )
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:confirmar_pago",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse(
+                "pedidos:checkout_exito",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+        
+        pago_pendiente.refresh_from_db()
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            pago_pendiente.estado,
+            EstadoPago.APROBADO,
+        )
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
          

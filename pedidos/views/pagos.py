@@ -26,7 +26,9 @@ class ConfirmarPagoView(LoginRequiredMixin, View):
             cliente=cliente,
         )
         
-        pago = pedido.pagos.first()
+        pago = pedido.pagos.filter(
+            estado=EstadoPago.PENDIENTE    
+        ).first()
         
         if pago is None:
             messages.error(

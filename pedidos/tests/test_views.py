@@ -2491,12 +2491,12 @@ class ConfirmarPagoViewTest(BaseTestCase):
         self.assertEqual(
             response.status_code,
             405,
-        )
+        )   
         
-    def test_confirmar_pago_ya_aprobado_muestra_error(self):
+    def test_confirmar_pago_stock_insuficiente_redirige_al_detalle(self):
         self.client.force_login(self.usuario)
         
-        self.crear_detalle()
+        self.crear_detalle(cantidad=2)
         
         direccion = Direccion.objects.create(
             cliente=self.cliente,
@@ -2509,33 +2509,42 @@ class ConfirmarPagoViewTest(BaseTestCase):
         )
         
         self.pedido.direccion_envio = direccion
-        self.pedido.save(update_fields=["direccion_envio"])
-        
-        pago = Pago.objects.create(
-            pedido=self.pedido,
-            estado=EstadoPago.APROBADO,
+        self.pedido.save(
+            update_fields=["direccion_envio"],
         )
+        
+        self.producto.stock = 1
+        self.producto.save(
+            update_fields=["stock"],
+        )
+        
+        pago = iniciar_pago(self.pedido)
         
         response = self.client.post(
             reverse(
                 "pedidos:confirmar_pago",
                 kwargs={"pk": self.pedido.pk},
             ),
-            follow=True,
         )
         
         self.pedido.refresh_from_db()
+        pago.refresh_from_db()
         
         self.assertEqual(
             self.pedido.estado,
             EstadoPedido.PENDIENTE,
         )
         
-        self.assertContains(
-            response,
-            "El pago no está pendiente.",
+        self.assertEqual(
+            pago.estado,
+            EstadoPago.PENDIENTE,
         )
         
+        self.assertContains(
+            response,
+            "No hay stock suficiente.",
+        )
+    
 class IniciarPagoViewTest(BaseTestCase):
     
     def test_iniciar_pago_crea_pago_pendiente(self):
@@ -2760,7 +2769,7 @@ class PagoViewTest(BaseTestCase):
         self.assertRedirects(
             response,
             reverse(
-                "pedidos:detalle",
+                "pedidos:checkout_exito",
                 kwargs={"pk": self.pedido.pk},
             ),
         )
