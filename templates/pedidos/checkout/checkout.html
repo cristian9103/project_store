@@ -117,6 +117,10 @@ Checkout
             </div>
         {% empty %}
             <p>No tienes direcciones registradas.</p>
+
+            <a href="{% url 'clientes:crear_direccion' %}">
+                Registrar dirección
+            </a>
         {% endfor %}
 
         <input 
