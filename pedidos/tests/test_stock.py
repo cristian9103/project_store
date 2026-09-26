@@ -1,4 +1,8 @@
-from pedidos.services import validar_stock, descontar_stock
+from pedidos.services import (
+    validar_stock, 
+    descontar_stock,
+    devolver_stock,
+)
 from pedidos.exceptions import StockInsuficienteError, CantidadInvalidaError
 from core.tests import BaseTestCase
 
@@ -99,4 +103,24 @@ class StockTestCase(BaseTestCase):
                 self.producto.stock,
                 stock_inicial
             )
+            
+    #-----------------------------------------
+    # devolver_stock()
+    #-----------------------------------------
+    
+    def test_devolver_stock_con_stock_cero(self):
+        self.producto.stock = 0
+        self.producto.save(update_fields=["stock"])
+        
+        devolver_stock(
+            self.producto,
+            cantidad=5,
+        )
+        
+        self.producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.producto.stock,
+            5,
+        )
         

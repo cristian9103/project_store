@@ -26,7 +26,10 @@ def descontar_stock(producto, cantidad):
     return producto
 
 def devolver_stock(producto, cantidad):
-    validar_stock(producto, cantidad)
+    if cantidad <= 0:
+        raise CantidadInvalidaError(
+            "La cantidad debe ser mayor que cero."
+        )
         
     producto.stock = F("stock") + cantidad
     producto.save(update_fields=["stock"])
