@@ -2525,6 +2525,7 @@ class ConfirmarPagoViewTest(BaseTestCase):
                 "pedidos:confirmar_pago",
                 kwargs={"pk": self.pedido.pk},
             ),
+            follow=True,
         )
         
         self.pedido.refresh_from_db()
@@ -2543,6 +2544,54 @@ class ConfirmarPagoViewTest(BaseTestCase):
         self.assertContains(
             response,
             "No hay stock suficiente.",
+        )
+        
+    def test_confirmar_pago_pedido_no_pendiente_redirige_al_detalle(self):
+        self.client.force_login(self.usuario)
+        
+        self.crear_detalle()
+        
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Cra 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"],
+        )
+        
+        pago = iniciar_pago(self.pedido)
+        
+        self.pedido.estado = EstadoPedido.PREPARACION
+        self.pedido.save(
+            update_fields=["estado"],
+        )
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:confirmar_pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
+            follow=True,
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse(
+                "pedidos:detalle",
+                kwargs={"pk": self.pedido.pk},
+            )
+        )
+        
+        self.assertContains(
+            response,
+            "El pedido debe estar pendiente.",
         )
     
 class IniciarPagoViewTest(BaseTestCase):

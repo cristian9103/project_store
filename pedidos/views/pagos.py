@@ -11,8 +11,10 @@ from pedidos.services.pagos import (
 )
 from pedidos.exceptions import (
     EstadoPagoInvalidoError,
+    EstadoPedidoInvalidoError,
     PedidoSinDireccionError,
     PedidoVacioError,
+    StockInsuficienteError,
 )
 
 class ConfirmarPagoView(LoginRequiredMixin, View):
@@ -46,7 +48,11 @@ class ConfirmarPagoView(LoginRequiredMixin, View):
                 pago,
                 aprobado=True,
             )
-        except EstadoPagoInvalidoError as error:
+        except (
+            EstadoPagoInvalidoError,
+            StockInsuficienteError,
+            EstadoPedidoInvalidoError,
+        ) as error:
             messages.error(
                 request,
                 str(error),
