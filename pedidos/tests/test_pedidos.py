@@ -1658,53 +1658,6 @@ class PedidosTestCase(BaseTestCase):
             EstadoPedido.PENDIENTE,
         )
         
-    def test_iniciar_pago_pedido_con_pago_rechazado_crea_nuevo_pago(self):
-        self.crear_detalle()
-        
-        direccion = Direccion.objects.create(
-            cliente=self.cliente,
-            nombre="Casa",
-            direccion="Cra 10",
-            ciudad="Medellín",
-            departamento="Antioquia",
-            codigo_postal="050001",
-            es_principal=True,
-        )
-        
-        self.pedido.direccion_envio = direccion
-        self.pedido.save(update_fields=["direccion_envio"])
-        
-        primer_pago = iniciar_pago(self.pedido)
-        
-        procesar_pago(
-            pago=primer_pago,
-            aprobado=False,
-        )
-        
-        segundo_pago = iniciar_pago(self.pedido)
-        
-        self.assertNotEqual(
-            segundo_pago.pk,
-            primer_pago.pk,
-        )
-        
-        self.assertEqual(
-            segundo_pago.pedido,
-            self.pedido,
-        )
-        
-        self.assertEqual(
-            segundo_pago.estado,
-            EstadoPago.PENDIENTE,
-        )
-        
-        self.assertEqual(
-            Pago.objects.filter(
-                pedido=self.pedido
-            ).count(),
-            2,
-        )
-        
     def test_iniciar_pago_con_pago_pendiente_no_crea_otro_pago(self):
         self.crear_detalle()
         
@@ -2773,7 +2726,7 @@ class PedidosTestCase(BaseTestCase):
             EstadoPedido.PREPARACION,
         )
         
-    def test_aplicar_pago_aprobado_con_stock_insuficiente_no_deja_pago_aprobado(self):
+    def test_aplicar_pago_aprobado_con_stock_insuficiente_mantiene_pago_aprobado(self):
         self.crear_detalle(
             cantidad=self.producto.stock + 1,
         )

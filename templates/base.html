@@ -18,32 +18,41 @@
 <body>
     
     <header>
+        
+        <nav class="navbar">
 
-        <nav>
+            <a href="#" class="logo">
+                Tienda de Belleza
+            </a>
 
-            <a href="#">Logo</a>
-            <a href="#">Inicio</a>
-            <a href="{% url 'catalogo:lista_productos' %}">Productos</a>
-            <a href="#">Categorías</a>
-            <a href="#">Buscar</a>
-            <a href="{% url 'pedidos:carrito' %}">Carrito</a>
-            <a href="#">Mi cuenta</a>
-            {% if user.is_authenticated %}
-                <span>
-                    {{ user.first_name }}
-                </span>
+            <div class="nav-actions">
 
-                <form action="{% url 'usuarios:logout' %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit">
-                        Cerrar sesión
-                    </button>
-                </form>
-            {% else %}
-                <a href="{% url 'usuarios:login' %}">
-                    Iniciar sesión
+                <a href="{% url 'catalogo:lista_productos' %}">
+                    Productos
                 </a>
-            {% endif %}
+
+                <a href="{% url 'pedidos:carrito' %}">
+                    Carrito
+                </a>
+
+                {% if user.is_authenticated %}
+                    <span>
+                        {{ user.first_name }}
+                    </span>
+
+                    <form action="{% url 'usuarios:logout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">
+                            Cerrar sesión
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'usuarios:login' %}">
+                        Iniciar sesión
+                    </a>
+                {% endif %}
+
+            </div>
 
         </nav>
 
@@ -54,7 +63,7 @@
         {% if messages %}
             <section>
                 {% for message in messages %}
-                    <p class="{{ message.tags}}">
+                    <p class="{{ message.tags }}">
                         {{ message }}
                     </p>
                 {% endfor %}

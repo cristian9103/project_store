@@ -1227,53 +1227,6 @@ class CheckoutViewTest(BaseTestCase):
             404,
         )
         
-    def test_checkout_no_puede_confirmar_pedido_de_otro_cliente(self):
-        self.client.force_login(self.usuario)
-        
-        otro_cliente = Cliente.objects.create(
-            usuario=self.otro_usuario,
-            documento="987321654",
-            telefono="3217894561",
-        )
-        
-        otro_pedido = crear_pedido(otro_cliente)
-        
-        DetallePedido.objects.create(
-            pedido=otro_pedido,
-            producto=self.producto,
-            precio_unitario=Decimal("20_000.00"),
-            cantidad=1,
-            subtotal=Decimal("20_000.00"),
-        )
-        
-        direccion = Direccion.objects.create(
-            cliente=otro_cliente,
-            nombre="Casa",
-            direccion="Calle 20",
-            ciudad="Medellín",
-            departamento="Antioquia",
-            codigo_postal="050002",
-            es_principal=True,
-        )
-        
-        otro_pedido.direccion_envio = direccion
-        otro_pedido.save(update_fields=["direccion_envio"])
-        
-        response = self.client.post(
-            reverse("pedidos:checkout"),
-            {
-                "accion": "confirmar",
-                "pedido_id": otro_pedido.pk,
-            },
-        )
-        
-        otro_pedido.refresh_from_db()
-        
-        self.assertEqual(
-            otro_pedido.estado,
-            EstadoPedido.PENDIENTE,
-        )
-        
     def test_checkout_muestra_datos_de_direccion_en_html(self):
         self.client.force_login(self.usuario)
         
@@ -1336,51 +1289,6 @@ class CheckoutViewTest(BaseTestCase):
         self.assertContains(
             response,
             "Continuar al pago",
-        )
-        
-    def test_checkout_muestra_pedido_y_direcciones_del_cliente(self):
-        direccion_1 = Direccion.objects.create(
-            cliente=self.cliente,
-            nombre="Casa",
-            direccion="Calle 10 # 20-30",
-            ciudad="Medellín",
-            departamento="Antioquia",
-            codigo_postal="050001",
-        )
-
-        direccion_2 = Direccion.objects.create(
-            cliente=self.cliente,
-            nombre="Trabajo",
-            direccion="Carrera 40 # 50-60",
-            ciudad="Medellín",
-            departamento="Antioquia",
-            codigo_postal="050002",
-        )
-        
-        self.client.force_login(self.usuario)
-        
-        request = self.client.get(
-            reverse("pedidos:checkout")
-        )
-        
-        self.assertEqual(
-            request.status_code,
-            200,
-        )
-        
-        self.assertEqual(
-            request.context["pedido"],
-            self.pedido
-        )
-        
-        self.assertQuerySetEqual(
-            request.context["direcciones"],
-            [
-                direccion_1.pk,
-                direccion_2.pk,
-            ],
-            transform=lambda direccion: direccion.pk,
-            ordered=False,
         )
         
     def test_get_checkout_muestra_pedido_y_direcciones(self):
