@@ -1,0 +1,88 @@
+/*===============================
+    Variables globales
+===============================*/
+
+:root {
+    --color-principal: #8b5e83;
+    --color-principal-hover: #704a69;
+    --color-secundario: #f3e8f1;
+    --color-fondo: #fffafc;
+    --color-texto: #333333;
+    --color-texto-suave: #666666;
+    --color-blanco: #ffffff;
+    --color-borde: #e5dce3;
+
+    --radio: 8px;
+}
+
+/*===============================
+    Base
+===============================*/
+
+body {
+    margin: 0;
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+}
+
+/*===============================
+    Navbar
+===============================*/
+
+.navbar {
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.navbar-brand {
+    color: var(--color-principal-hover);
+}
+
+.navbar-brand:hover {
+    color: var(--color-principal-hover);
+}
+
+.navbar .nav-link {
+    color: var(--color-texto);
+}
+
+.navbar .nav-link:hover {
+    color: var(--color-principal);
+}
+
+/*===============================
+    Contenido principal
+===============================*/
+
+main {
+    min-height: 70vh;
+}
+
+/*===============================
+    Mensajes de Django
+===============================*/
+
+.messages {
+    max-width: 1200px;
+    margin: 1rem auto;
+    padding: 0 1rem;
+}
+
+.message {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    background-color: var(--color-secundario);
+}
+
+/*===============================
+    Footer
+===============================*/
+
+footer {
+    margin-top: 3rem;
+    padding: 2rem 1rem;
+    background-color: var(--color-secundario);
+    color: var(--color-texto-suave);
+    text-align: center;
+}
