@@ -1,29 +1,43 @@
 {% extends "base.html" %}
 
 {% block title %}
-Catálogo
+    Catálogo
 {% endblock %}
 
 {% block content %}
 
-<h1>Catálogo</h1>
+<div class="container py-4">
 
-{% include "catalogo/partials/formulario_busqueda.html" %}
+    <h1 class="mb-4">
+        Catálogo
+    </h1>
 
-<section class="productos">
+    {% include "catalogo/partials/formulario_busqueda.html" %}
 
-    {% for producto in productos %}
+    <section class="row g-4 mt-2">
 
-        {% include "catalogo/partials/tarjeta_producto.html" %}
+        {% for producto in productos %}
 
-    {% empty %}
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                {% include "catalogo/partials/tarjeta_producto.html" %}
+            </div>
 
-        <p>No hay productos disponibles.</p>
+        {% empty %}
 
-    {% endfor%}
+            <div class="col-12">
+                <p class="text-center">
+                    No hay productos disponibles.
+                </p>
+            </div>
 
-</section>
+        {% endfor%}
 
-{% include "catalogo/partials/paginacion.html" %}
+    </section>
+
+    <div class="mt-4">
+        {% include "catalogo/partials/paginacion.html" %}
+    </div>
+
+</div>
 
 {% endblock %}

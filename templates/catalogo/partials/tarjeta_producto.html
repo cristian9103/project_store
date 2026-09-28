@@ -1,44 +1,46 @@
-<article class="producto">
+<article class="card h-100 producto">
 
-    <figure>
+    {% if producto.imagen_principal %}
 
-        {% if producto.imagen_principal %}
-            <img 
-                src="{{ producto.imagen_principal.imagen.url }}" 
-                alt="{{ producto.imagen_principal.texto_alternativo }}"
-                width="200"
-            >
+        <img 
+            src="{{ producto.imagen_principal.imagen.url }}" 
+            alt="{{ producto.imagen_principal.texto_alternativo }}"
+            class="card-img-top"
+        >
 
-        {% else %}
+    {% else %}
 
-            <p>Imagen no disponible.</p>
+        <div 
+            class="d-flex align-items-center justify-content-center bg-light"
+            style="height: 250px;">
+            <span class="text-muted">
+                Imagen no disponible.
+            </span>
+        </div>
 
-        {% endif %}
-        
-    </figure>
+    {% endif %}
 
-    <h2>
+    <div class="card-body d-flex flex-column">
 
-        {{ producto.nombre }}
+        <h2 class="card-title fs-5">
+            {{ producto.nombre }}
+        </h2>
 
-    </h2>
+        <p class="card-text text-muted mb-2">
+            {{ producto.marca.nombre }}
+        </p>
 
-    <p>
+        <p class="card-text fw-bold fs-5 mt-auto">
+            ${{ producto.precio_venta }}
+        </p>
 
-        {{ producto.marca.nombre }}
+        <a 
+            href="{% url 'catalogo:detalle_producto' producto.pk %}"
+            class="btn btn-primary"
+        >
+            Ver producto
+        </a>
 
-    </p>
-
-    <p>
-
-        ${{ producto.precio_venta }}
-
-    </p>
-
-    <a href="{% url 'catalogo:detalle_producto' producto.pk %}">
-
-        Ver producto
-
-    </a>
+    </div>
 
 </article>
