@@ -9,6 +9,7 @@ class ProductoBusquedaForm(forms.Form):
         label="Buscar",
         widget=forms.TextInput(
             attrs={
+                "class": "form-control",
                 "placeholder": "Buscar productos...",
             }
         ),
@@ -18,11 +19,21 @@ class ProductoBusquedaForm(forms.Form):
         queryset=Categoria.objects.all(),
         required=False,
         empty_label="Todas las categorías",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
     )
     
     marca = forms.ModelChoiceField(
         queryset=Marca.objects.all(),
         required=False,
         empty_label="Todas las marcas",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
     )
     
