@@ -1,26 +1,39 @@
 <section>
-    <h1>
+    <h1 class="display-6 fw-bold">
         {{ producto.nombre }}
     </h1>
 
-    <p>
+    <p class="text-muted mb-2">
         Marca: {{ producto.marca.nombre }}
     </p>
 
-    <p>
+    <p class="text-muted">
         Categoría: {{ producto.categoria.nombre }}
     </p>
 
-    <p>
-        Precio: ${{ producto.precio_venta }}
+    <p class="fs-3 fw-bold">
+        ${{ producto.precio_venta }}
     </p>
+    
+    {% if producto.stock > 0 %}
 
-    <p>
-        Stock disponible: {{ producto.stock }}
-    </p>
+        <p class="text-succes fw-semibold">
+            Stock disponible: {{ producto.stock }}
+        </p>
+
+    {% else %}
+
+        <p class="text-danger fw-semibold">
+            Producto agotado.
+        </p>
+
+    {% endif %}
 
     {% if producto.descripcion %}
-        <h2>
+
+        <hr>
+
+        <h2 class="h4">
             Descripción
         </h2>
 
@@ -28,6 +41,8 @@
             {{ producto.descripcion }}
         </p>
     {% endif %}
+
+    <hr>
 
     {% include "catalogo/partials/formulario_carrito.html" %}
 

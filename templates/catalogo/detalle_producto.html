@@ -1,17 +1,29 @@
 {% extends "base.html" %}
 
 {% block title %}
-{{ producto.nombre }}
+    {{ producto.nombre }}
 {% endblock %}
 
 {% block content %}
 
-<article>
-    
-    {% include "catalogo/partials/galeria_producto.html" %}
+<div class="container py-4">
 
-    {% include "catalogo/partials/informacion_producto.html" %}
-    
-</article>
+    <article class="row g-4">
+
+        <div class="col-12 col-lg-6">
+        
+            {% include "catalogo/partials/galeria_producto.html" %}
+
+        </div>
+
+        <div class="col-12 col-lg-6">
+
+            {% include "catalogo/partials/informacion_producto.html" %}
+
+        </div>
+        
+    </article>
+
+</div>
 
 {% endblock %}
