@@ -252,3 +252,19 @@ class ProductoDetailViewTest(BaseTestCase):
             self.pedido.total,
             Decimal("0"),
         )
+
+class ProductoListViewTest(BaseTestCase):
+    
+    def test_catalogo_muestra_producto_sin_stock(self):
+        self.producto.stock = 0
+        self.producto.save(update_fields=["stock"])
+        
+        response = self.client.get(
+            reverse("catalogo:lista_productos")
+        )
+        
+        self.assertContains(
+            response,
+            self.producto.nombre
+        )
+        
