@@ -34,7 +34,7 @@ def buscar_productos(
     
 def obtener_producto(pk):
     queryset = (
-        Producto.objects.disponibles()
+        Producto.objects.activos()
         .select_related(
             "categoria",
             "marca",

@@ -434,6 +434,29 @@ class AgregarAlCarritoViewTest(BaseTestCase):
                 producto=self.producto
             ).exists()
         )
+        
+    def test_no_permite_agregar_producto_sin_stock(self):
+        self.producto.stock = 0
+        self.producto.save(update_fields=["stock"])
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:agregar_producto",
+                args=[self.producto.pk]
+            ),
+            {"cantidad": 1},
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        self.assertFalse(
+            self.pedido.detalles_pedido.filter(
+                producto=self.producto
+            ).exists()
+        )
 
 class ActualizarCantidadViewTest(BaseTestCase):
     

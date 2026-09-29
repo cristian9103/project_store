@@ -252,6 +252,43 @@ class ProductoDetailViewTest(BaseTestCase):
             self.pedido.total,
             Decimal("0"),
         )
+        
+    def test_detalle_muestra_producto_sin_stock(self):
+        self.producto.stock = 0
+        self.producto.save(update_fields=["stock"])
+        
+        response = self.client.get(
+            reverse(
+                "catalogo:detalle_producto",
+                args=[self.producto.pk]
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+        
+        self.assertContains(
+            response,
+            self.producto.nombre
+        )
+        
+    def test_detalle_no_muestra_formulario_carrito_sin_stock(self):
+        self.producto.stock = 0
+        self.producto.save(update_fields=["stock"])
+        
+        response = self.client.get(
+            reverse(
+                "catalogo:detalle_producto",
+                args=[self.producto.pk]
+            )
+        )
+        
+        self.assertNotContains(
+            response,
+            "Agregar al carrito"
+        )
 
 class ProductoListViewTest(BaseTestCase):
     
