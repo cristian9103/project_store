@@ -24,7 +24,7 @@ class ProductoListView(ListView):
                 marca=self.form.cleaned_data["marca"],
             )
             
-        return Producto.objects.disponibles()
+        return Producto.objects.activos()
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

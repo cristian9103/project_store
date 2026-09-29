@@ -8,7 +8,7 @@ def buscar_productos(
     categoria=None,
     marca=None
 ):
-    queryset = Producto.objects.disponibles()
+    queryset = Producto.objects.activos()
     
     if texto:
         queryset = queryset.filter(
