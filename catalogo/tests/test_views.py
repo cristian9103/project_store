@@ -268,3 +268,17 @@ class ProductoListViewTest(BaseTestCase):
             self.producto.nombre
         )
         
+    def test_busqueda_muestra_producto_sin_stock(self):
+        self.producto.stock = 0
+        self.producto.save(update_fields=["stock"])
+        
+        response = self.client.get(
+            reverse("catalogo:lista_productos"),
+            {"buscar": self.producto.nombre},
+        )
+        
+        self.assertContains(
+            response,
+            self.producto.nombre,
+        )
+        
