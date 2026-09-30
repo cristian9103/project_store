@@ -42,8 +42,12 @@
         </p>
     {% endif %}
 
-    <hr>
+    {% if producto.stock > 0 %}
 
-    {% include "catalogo/partials/formulario_carrito.html" %}
+        <hr>
+
+        {% include "catalogo/partials/formulario_carrito.html" %}
+
+    {% endif %}
 
 </section>

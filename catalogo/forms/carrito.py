@@ -8,6 +8,7 @@ class AgregarAlCarritoForm(forms.Form):
         initial=1,
         widget=forms.NumberInput(
             attrs={
+                "class": "form-control",
                 "min": 1,
             }
         ),

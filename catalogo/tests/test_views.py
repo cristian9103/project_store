@@ -289,6 +289,22 @@ class ProductoDetailViewTest(BaseTestCase):
             response,
             "Agregar al carrito"
         )
+        
+    def test_detalle_muestra_formulario_carrito_con_stock(self):
+        self.producto.stock = 5
+        self.producto.save(update_fields=["stock"])
+        
+        response = self.client.get(
+            reverse(
+                "catalogo:detalle_producto",
+                args=[self.producto.pk]
+            )
+        )
+        
+        self.assertContains(
+            response,
+            "Agregar al carrito"
+        )
 
 class ProductoListViewTest(BaseTestCase):
     
