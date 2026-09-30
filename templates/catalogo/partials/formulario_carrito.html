@@ -5,17 +5,32 @@
 >
     {% csrf_token %}
 
-    {{ form.non_field_errors }}
+    {% if form.non_field_errors %}
+    
+        <div class="alert alert-danger" role="alert">
+            {{ form.non_field_errors }}
+        </div>
 
-    <div>
+    {% endif %}
+
+    <div class="mb-3">
         {{ form.cantidad.label_tag }}
 
         {{ form.cantidad }}
 
-        {{ form.cantidad.errors }}
+        {% if form.cantidad.errors %}
+
+            <div class="invalid-feedback d-block">
+                {{ form.cantidad.errors }}
+            </div>
+
+        {% endif %}
     </div>
 
-    <button type="submit">
+    <button 
+        type="submit"
+        class="btn btn-primary w-100"
+    >
         Agregar al carrito
     </button>
 </form>
