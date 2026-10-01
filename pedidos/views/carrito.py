@@ -108,12 +108,15 @@ class ActualizarCantidadView(LoginRequiredMixin, View):
     
     def post(self, request, detalle_id):
         
+        cliente = obtener_cliente(request.user)
+        
         detalle = get_object_or_404(
             DetallePedido.objects.select_related(
                 "pedido",
                 "producto",
             ),
             pk=detalle_id,
+            pedido__cliente=cliente,
         )
         
         form = ActualizarCantidadForm(request.POST)

@@ -858,6 +858,32 @@ class ActualizarCantidadViewTest(BaseTestCase):
             2
         )
         
+    def test_actualizar_cantidad_no_permite_modificar_detalle_de_otro_cliente(self):
+        detalle = self.crear_detalle(
+            cantidad=2
+        )
+        
+        self.client.force_login(self.otro_usuario)
+        
+        self.client.post(
+            reverse(
+                "pedidos:actualizar_cantidad",
+                kwargs={
+                    "detalle_id": detalle.pk
+                }
+            ),
+            data={
+                "cantidad": 3
+            }
+        )
+        
+        detalle.refresh_from_db()
+        
+        self.assertEqual(
+            detalle.cantidad,
+            2
+        )
+        
 class VaciarCarritoViewTest(BaseTestCase):
     
     def test_vaciar_carrito_correctamente(self):
