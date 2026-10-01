@@ -481,6 +481,134 @@ class AgregarAlCarritoViewTest(BaseTestCase):
             response,
             "No hay suficiente stock.",
         )
+        
+    def test_agregar_producto_exitosamente_crea_detalle_y_redirige(self):
+        self.client.force_login(self.usuario)
+        
+        self.producto.stock = 5
+        self.producto.precio_venta = Decimal("10_000.00")
+        self.producto.save(
+            update_fields=["stock", "precio_venta"]
+        )
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:agregar_producto",
+                args=[self.producto.pk],
+            ),
+            {"cantidad": 2},
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito"),
+        )
+        
+        cliente = Cliente.objects.get(usuario=self.usuario)
+        
+        pedido = Pedido.objects.get(
+            cliente=cliente,
+            estado=EstadoPedido.PENDIENTE,
+        )
+        
+        detalle = pedido.detalles_pedido.get(
+            producto=self.producto
+        )
+        
+        self.assertEqual(
+            detalle.cantidad,
+            2,
+        )
+        
+        self.assertEqual(
+            detalle.precio_unitario,
+            Decimal("10_000.00"),
+        )
+        
+        self.assertEqual(
+            detalle.subtotal,
+            Decimal("20_000.00"),
+        )
+        
+        self.assertEqual(
+            pedido.subtotal,
+            Decimal("20_000.00"),
+        )
+        
+        self.assertEqual(
+            pedido.total,
+            Decimal("20_000.00")
+        )
+        
+    def test_agregar_producto_existente_acumula_cantidad(self):
+        self.client.force_login(self.usuario)
+        
+        self.producto.stock = 10
+        self.producto.precio_venta = Decimal("10_000.00")
+        self.producto.save(
+            update_fields=["stock", "precio_venta"]
+        )
+        
+        url = reverse(
+            "pedidos:agregar_producto",
+            args=[self.producto.pk],
+        )
+        
+        self.client.post(
+            url,
+            {"cantidad": 2},
+        )
+        
+        response = self.client.post(
+            url,
+            {"cantidad": 3},
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito"),
+        )
+        
+        cliente = Cliente.objects.get(usuario=self.usuario)
+        
+        pedido = Pedido.objects.get(
+            cliente=cliente,
+            estado=EstadoPedido.PENDIENTE,
+        )
+        
+        self.assertEqual(
+            pedido.detalles_pedido.count(),
+            1,
+        )
+        
+        detalle = pedido.detalles_pedido.get(
+            producto=self.producto,
+        )
+        
+        self.assertEqual(
+            detalle.cantidad,
+            5,
+        )
+        
+        self.assertEqual(
+            detalle.precio_unitario,
+            Decimal("10_000.00"),
+        )
+        
+        self.assertEqual(
+            detalle.subtotal,
+            Decimal("50_000.00"),
+        )
+        
+        self.assertEqual(
+            pedido.subtotal,
+            Decimal("50_000.00"),
+        )
+        
+        self.assertEqual(
+            pedido.total,
+            Decimal("50_000.00")
+        )
 
 class ActualizarCantidadViewTest(BaseTestCase):
     
