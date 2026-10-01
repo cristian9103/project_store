@@ -2,10 +2,16 @@ from django.views import View
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import (
+    get_object_or_404, 
+    redirect,
+    render,
+)
 
 from catalogo.forms import AgregarAlCarritoForm
 from catalogo.models import Producto
+from catalogo.selectors import obtener_producto
+
 from clientes.selectors import obtener_cliente
 
 from pedidos.services import (
@@ -37,9 +43,15 @@ class AgregarAlCarritoView(LoginRequiredMixin, View):
         )
         
         if not form.is_valid():
-            return redirect(
-                "catalogo:detalle_producto",
-                pk=producto.pk,
+            producto = obtener_producto(producto.pk)
+            
+            return render(
+                request,
+                "catalogo/detalle_producto.html",
+                {
+                    "producto": producto,
+                    "form": form,
+                },
             )
             
         cliente = obtener_cliente(request.user)

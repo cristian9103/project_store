@@ -457,6 +457,30 @@ class AgregarAlCarritoViewTest(BaseTestCase):
                 producto=self.producto
             ).exists()
         )
+        
+    def test_cantidad_mayor_al_stock_muestra_error_en_formulario(self):
+        self.client.force_login(self.usuario)
+        
+        self.producto.stock = 2
+        self.producto.save(update_fields=["stock"])
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:agregar_producto",
+                args=[self.producto.pk],
+            ),
+            {"cantidad": 3},
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertContains(
+            response,
+            "No hay suficiente stock.",
+        )
 
 class ActualizarCantidadViewTest(BaseTestCase):
     
