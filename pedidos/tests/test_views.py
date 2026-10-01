@@ -609,6 +609,89 @@ class AgregarAlCarritoViewTest(BaseTestCase):
             pedido.total,
             Decimal("50_000.00")
         )
+        
+    def test_agregar_producto_existente_no_supera_stock(self):
+        self.client.force_login(self.usuario)
+        
+        self.producto.stock = 5
+        self.producto.precio_venta = Decimal("10_000.00")
+        self.producto.save(
+            update_fields=["stock", "precio_venta"]
+        )
+        
+        url = reverse(
+            "pedidos:agregar_producto",
+            args=[self.producto.pk],
+        )
+        
+        # Primer agregado: 3 unidades.
+        response = self.client.post(
+            url,
+            {"cantidad": 3},
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito"),
+        )
+        
+        # Segundo agregado: otras 3 unidades.
+        # 3 + 3 = 6, pero solo hay 5 disponibles.
+        response = self.client.post(
+            url,
+            {"cantidad": 3},
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse(
+                "catalogo:detalle_producto",
+                args=[self.producto.pk],
+            ),
+        )
+        
+        messages = list(get_messages(response.wsgi_request))
+        
+        self.assertTrue(
+            any(
+                str(message) == "No hay stock suficiente."
+                for message in messages
+            )
+        )
+        
+        cliente = Cliente.objects.get(
+            usuario=self.usuario,
+        )
+        
+        pedido = Pedido.objects.get(
+            cliente=cliente,
+            estado=EstadoPedido.PENDIENTE,
+        )
+        
+        detalle = pedido.detalles_pedido.get(
+            producto=self.producto,
+        )
+        
+        # El segundo intento no debe modificar el carrito.
+        self.assertEqual(
+            detalle.cantidad,
+            3,
+        )
+        
+        self.assertEqual(
+            detalle.subtotal,
+            Decimal("30_000.00"),
+        )
+        
+        self.assertEqual(
+            pedido.subtotal,
+            Decimal("30_000.00"),
+        )
+        
+        self.assertEqual(
+            pedido.total,
+            Decimal("30_000.00"),
+        )
 
 class ActualizarCantidadViewTest(BaseTestCase):
     
@@ -734,6 +817,38 @@ class ActualizarCantidadViewTest(BaseTestCase):
         self.assertRedirects(
             response,
             f"{login_url}?next={detalle_url}"
+        )
+        
+        detalle.refresh_from_db()
+        
+        self.assertEqual(
+            detalle.cantidad,
+            2
+        )
+        
+    def test_actualizar_cantidad_negativa_no_modifica_detalle(self):
+        
+        detalle = self.crear_detalle(
+            cantidad=2,
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:actualizar_cantidad",
+                kwargs={
+                    "detalle_id": detalle.pk
+                }
+            ),
+            data={
+                "cantidad": -1
+            }
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito")
         )
         
         detalle.refresh_from_db()
