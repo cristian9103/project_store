@@ -884,6 +884,26 @@ class ActualizarCantidadViewTest(BaseTestCase):
             2
         )
         
+    def test_actualizar_cantidad_detalle_inexistente_devuelve_404(self):
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:actualizar_cantidad",
+                kwargs={
+                    "detalle_id": 9999999
+                }
+            ),
+            data={
+                "cantidad": 3
+            }
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404
+        )
+        
 class VaciarCarritoViewTest(BaseTestCase):
     
     def test_vaciar_carrito_correctamente(self):
@@ -907,6 +927,18 @@ class VaciarCarritoViewTest(BaseTestCase):
             DetallePedido.objects.filter(
                 pedido=self.pedido
             ).exists()
+        )
+        
+        self.pedido.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.subtotal,
+            Decimal("0.00")
+        )
+        
+        self.assertEqual(
+            self.pedido.total,
+            Decimal("0.00")
         )
         
         self.assertTrue(
