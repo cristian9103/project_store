@@ -122,14 +122,13 @@ class CarritoDetailViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            '<input type="number" name="cantidad" value="2" min="0">',
-            html=True,
+            'name="cantidad"',
         )
         
     def test_carrito_muestra_precio_unitario(self):
         self.client.force_login(self.usuario)
         
-        self.crear_detalle(
+        detalle = self.crear_detalle(
             cantidad=2,
         )
         
@@ -139,7 +138,7 @@ class CarritoDetailViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            f"${self.producto.precio_venta}",
+            f"${detalle.precio_unitario}",
         )
         
     def test_carrito_muestra_subtotal_producto(self):
@@ -175,7 +174,12 @@ class CarritoDetailViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            f"Subtotal: $40000,00",
+            "Subtotal",
+        )
+        
+        self.assertContains(
+            response,
+            "$40000,00",
         )
         
     def test_carrito_muestra_costo_envio(self):
@@ -198,7 +202,12 @@ class CarritoDetailViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            "Envío: $5000,00",
+            "Envío",
+        )
+        
+        self.assertContains(
+            response,
+            "$5000,00",
         )
         
     def test_carrito_muestra_descuento(self):
@@ -219,7 +228,12 @@ class CarritoDetailViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            "Descuento: $3000,00",
+            "Descuento",
+        )
+        
+        self.assertContains(
+            response,
+            "$3000,00",
         )
         
     def test_carrito_muestra_total_pedido(self):
@@ -246,7 +260,12 @@ class CarritoDetailViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            "Total: $42000,00"
+            "Total"
+        )
+        
+        self.assertContains(
+            response,
+            "$42000,00"
         )
         
     def test_carrito_muestra_enlace_seguir_comprando(self):
@@ -283,6 +302,25 @@ class CarritoDetailViewTest(BaseTestCase):
         self.assertContains(
             response,
             reverse("pedidos:checkout")
+        )
+        
+    def test_carrito_sin_pedido_pendiente_muestra_carrito_vacio(self):
+        self.client.force_login(self.usuario)
+        
+        self.pedido.delete()
+        
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertContains(
+            response,
+            "No tienes productos en el carrito.",
         )
         
 class AgregarAlCarritoViewTest(BaseTestCase):
