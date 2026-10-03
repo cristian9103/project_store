@@ -2996,6 +2996,69 @@ class IniciarPagoViewTest(BaseTestCase):
             reverse("pedidos:carrito"),
         )
         
+    def test_pago_confirmar_cambia_pedido_a_preparacion(self):
+        self.client.force_login(self.usuario)
+
+        self.crear_detalle()
+
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Calle 1 # 2-3",
+            ciudad="Medellín",
+            departamento="Antioquia",
+        )
+
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(
+            update_fields=["direccion_envio"],
+        )
+
+        pago = iniciar_pago(self.pedido)
+
+        response = self.client.post(
+            reverse(
+                "pedidos:confirmar_pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+
+        self.assertRedirects(
+            response,
+            reverse(
+                "pedidos:checkout_exito",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+
+        self.pedido.refresh_from_db()
+
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+    
+    def test_iniciar_pago_de_otro_cliente_devuelve_404(self):
+        self.client.force_login(self.otro_usuario)
+        
+        response = self.client.post(
+            reverse(
+                "pedidos:iniciar_pago",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+        
+        self.assertFalse(
+            Pago.objects.filter(
+                pedido=self.pedido,
+            ).exists()
+        )
+        
 class PagoViewTest(BaseTestCase):
     
     def test_pago_muestra_pago_pendiente(self):
@@ -3080,46 +3143,4 @@ class PagoViewTest(BaseTestCase):
         self.assertContains(
             response,
             "Confirmar pago",
-        )
-        
-    def test_pago_confirmar_cambia_pedido_a_preparacion(self):
-        self.client.force_login(self.usuario)
-        
-        self.crear_detalle()
-        
-        direccion = Direccion.objects.create(
-            cliente=self.cliente,
-            nombre="Casa",
-            direccion="Calle 1 # 2-3",
-            ciudad="Medellín",
-            departamento="Antioquia",
-        )
-        
-        self.pedido.direccion_envio = direccion
-        self.pedido.save(
-            update_fields=["direccion_envio"],
-        )
-        
-        pago = iniciar_pago(self.pedido)
-        
-        response = self.client.post(
-            reverse(
-                "pedidos:confirmar_pago",
-                kwargs={"pk": self.pedido.pk},
-            ),
-        )
-        
-        self.assertRedirects(
-            response,
-            reverse(
-                "pedidos:checkout_exito",
-                kwargs={"pk": self.pedido.pk},
-            ),
-        )
-        
-        self.pedido.refresh_from_db()
-        
-        self.assertEqual(
-            self.pedido.estado,
-            EstadoPedido.PREPARACION,
         )
