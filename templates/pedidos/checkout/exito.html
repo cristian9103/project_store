@@ -1,51 +1,79 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block title %}
-Pedido confirmado
+    Pedido confirmado
 {% endblock %}
 
 {% block content %}
-<main>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
 
-    <h1>¡Pedido confirmado!</h1>
+            <div class="card shadow-sm">
+                <div class="card-body p-4 p-md-5 text-center">
 
-    <p>
-        Tu pago ha sido aprobado y tu pedido fue registrado correctamente.
-    </p>
+                    <div class="mb-4">
+                        <div class="display-4 text-success mb-3">
+                            ✓
+                        </div>
 
-    <p>
-        Número de pedido:
-        <strong>#{{ pedido.pk }}</strong>
-    </p>
+                        <h1 class="h2 mb-3">
+                            ¡Pedido confirmado!
+                        </h1>
 
-    <p>
-        Estado:
-        <strong>{{ pedido.get_estado_display }}</strong>
-    </p>
+                        <p class="text-muted mb-0">
+                            Tu pago ha sido aprobado y tu pedido fue registrado correctamente.
+                        </p>
+                    </div>
 
-    <section>
-        <h2>Resumen</h2>
+                    <div class="border rounded p-3 mb-4 text-start">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Número de pedido</span>
+                            <strong>#{{ pedido.pk }}</strong>
+                        </div>
 
-        <p>
-            Productos:
-            {{ pedido.detalles_pedido.count }}
-        </p>
+                        <div class="d-flex justify-content-between">
+                            <span>Estado</span>
+                            <strong>{{ pedido.get_estado_display}}</strong>
+                        </div>
+                    </div>
 
-        <p>
-            Total:
-            <strong>${{ pedido.total }}</strong>
-        </p>
-    </section>
+                    <section class="border rounded p-3 mb-4 text-start">
+                        <h2 class="h5 mb-3">
+                            Resumen
+                        </h2>
 
-    <section>
-        <a href="{% url 'pedidos:detalle' pedido.pk %}">
-            Ver detalle del pedido
-        </a>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Productos</span>
+                            <span>{{ pedido.detalles_pedido.count }}</span>
+                        </div>
 
-        <a href="{% url 'catalogo:lista_productos' %}">
-            Seguir comprando
-        </a>
-    </section>
+                        <div class="d-flex justify-content-between fs-5">
+                            <span>Total</span>
+                            <strong>${{ pedido.total }}</strong>
+                        </div>
+                    </section>
 
-</main>
+                    <div class="d-flex flex-column gap-2">
+                        <a 
+                            href="{% url 'pedidos:detalle' pedido.pk %}"
+                            class="btn btn-primary"
+                        >
+                            Ver detalle del pedido
+                        </a>
+
+                        <a 
+                            href="{% url 'catalogo:lista_productos' %}"
+                            class="btn btn-outline-primary"
+                        >
+                            Seguir comprando
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 {% endblock %}

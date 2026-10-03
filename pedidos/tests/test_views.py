@@ -2698,6 +2698,14 @@ class ConfirmarPagoViewTest(BaseTestCase):
             EstadoPedido.PREPARACION,
         )
         
+        self.assertRedirects(
+            response,
+            reverse(
+                "pedidos:checkout_exito",
+                kwargs={"pk": self.pedido.pk},
+            ),
+        )
+        
     def test_no_puede_confirmar_pago_de_otro_cliente(self):
         self.client.force_login(self.usuario)
         
