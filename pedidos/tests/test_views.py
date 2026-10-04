@@ -2198,6 +2198,20 @@ class DetallePedidoViewTest(BaseTestCase):
     def test_detalle_pedido_muestra_resumen_economico(self):
         self.client.force_login(self.usuario)
         
+        self.pedido.subtotal = Decimal("75_000.00")
+        self.pedido.costo_envio = Decimal("3_000.00")
+        self.pedido.descuento = Decimal("7_000.00")
+        self.pedido.total = Decimal("71_000.00")
+        self.pedido.save(
+            update_fields=
+            [
+                "subtotal",
+                "costo_envio",
+                "descuento",
+                "total",
+            ]
+        )
+        
         response = self.client.get(
             reverse(
                 "pedidos:detalle",
@@ -2207,22 +2221,38 @@ class DetallePedidoViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            f"Subtotal del pedido: 0,00",
+            "Subtotal del pedido:",
+        )
+        self.assertContains(
+            response,
+            "75000,00",
         )
         
         self.assertContains(
             response,
-            f"Costo de envío: 0,00",
+            "Costo de envío:",
+        )
+        self.assertContains(
+            response,
+            "3000,00",
         )
         
         self.assertContains(
             response,
-            f"Descuento: 0,00",
+            "Descuento:",
+        )
+        self.assertContains(
+            response,
+            "7000,00",
         )
         
         self.assertContains(
             response,
-            f"Total: 0,00",
+            "Total:",
+        )
+        self.assertContains(
+            response,
+            "71000,00",
         )
         
     def test_detalle_pedido_muestra_estado(self):
@@ -2237,7 +2267,12 @@ class DetallePedidoViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            f"Estado: {self.pedido.get_estado_display()}",
+            "Estado:",
+        )
+        
+        self.assertContains(
+            response,
+            self.pedido.get_estado_display(),
         )
         
     def test_detalle_pedido_muestra_fecha(self):
@@ -2262,7 +2297,11 @@ class DetallePedidoViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            f"Fecha: {fecha}",
+            "Fecha:",
+        )
+        self.assertContains(
+            response,
+            fecha,
         )
         
     def test_detalle_pedido_muestra_direccion_de_envio(self):
@@ -2290,27 +2329,47 @@ class DetallePedidoViewTest(BaseTestCase):
         
         self.assertContains(
             response,
-            f"Nombre: {direccion.nombre}",
+            "Nombre:",
+        )
+        self.assertContains(
+            response,
+            direccion.nombre,
         )
         
         self.assertContains(
             response,
-            f"Dirección: {direccion.direccion}",
+            "Dirección:",
+        )
+        self.assertContains(
+            response,
+            direccion.direccion,
         )
         
         self.assertContains(
             response,
-            f"Ciudad: {direccion.ciudad}",
+            "Ciudad:",
+        )
+        self.assertContains(
+            response,
+            direccion.ciudad,
         )
         
         self.assertContains(
             response,
-            f"Departamento: {direccion.departamento}",
+            "Departamento:",
+        )
+        self.assertContains(
+            response,
+            direccion.departamento,
         )
         
         self.assertContains(
             response,
-            f"Código postal: {direccion.codigo_postal}",
+            "Código postal:",
+        )
+        self.assertContains(
+            response,
+            direccion.codigo_postal,
         )
         
     def test_detalle_pedido_pendiente_muestra_boton_cancelar(self):

@@ -1,56 +1,219 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Detalle pedido
+    Detalle pedido
 {% endblock %}
 
 {% block content %}
+<div class="container py-4">
 
-<h1>Pedido #{{ pedido.pk }}</h1>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+        <div>
+            <h1 class="h2 mb-2">
+                Pedido #{{ pedido.pk }}
+            </h1>
 
-<p>Estado: {{ pedido.get_estado_display }}</p>
-<p>Fecha: {{ pedido.fecha|date:"d/m/Y" }}</p>
+            <div class="d-flex flex-wrap gap-3 text-muted">
+                <span>
+                    Estado:
+                    <Strong class="text-body">
+                        {{ pedido.get_estado_display }}
+                    </Strong>
+                </span>
 
-{% for detalle in pedido.detalles_pedido.all %}
-    <div>
-        <h2>{{ detalle.producto.nombre }}</h2>
-        <p>Cantidad: {{ detalle.cantidad }}</p>
-        <p>Precio unitario: {{ detalle.precio_unitario }}</p>
-        <p>Subtotal: {{ detalle.subtotal }}</p>
+                <span>
+                    Fecha:
+                    <strong class="text-body">
+                        {{ pedido.fecha|date:"d/m/Y" }}
+                    </strong>
+                </span>
+            </div>
+        </div>
     </div>
-{% endfor %}
 
-<section>
-    <h2>Dirección de envío</h2>
+    <div class="row g-4">
 
-    <p>Nombre: {{ pedido.direccion_envio.nombre }}</p>
-    <p>Dirección: {{ pedido.direccion_envio.direccion }}</p>
-    <p>Ciudad: {{ pedido.direccion_envio.ciudad }}</p>
-    <p>Departamento: {{ pedido.direccion_envio.departamento }}</p>
-    <p>Código postal: {{ pedido.direccion_envio.codigo_postal }}</p>
-</section>
+        <div class="col-12 col-lg-8">
 
-<section>
-    <h2>Resumen del pedido</h2>
+            <section class="card shadow-sm">
+                <div class="card-body">
 
-    <p>Subtotal del pedido: {{ pedido.subtotal }}</p>
-    <p>Costo de envío: {{ pedido.costo_envio }}</p>
-    <p>Descuento: {{ pedido.descuento }}</p>
-    <p>Total: {{ pedido.total }}</p>
-</section>
+                    <h2 class="h4 mb-4">
+                        Productos
+                    </h2>
 
-{% if pedido.puede_cancelarse %}
-    <form method="post" action="{% url 'pedidos:cancelar' pedido.pk %}">
-        {% csrf_token %}
-        <button type="submit">Cancelar pedido</button>
-    </form>
-{% endif %}
+                    <div class="list-group list-group-flush">
 
-{% if pago_pendiente %}
-    <form method="post" action="{% url 'pedidos:confirmar_pago' pedido.pk %}">
-        {% csrf_token %}
-        <button type="submit">Confirmar pago</button>
-    </form>
-{% endif %}
+                        {% for detalle in pedido.detalles_pedido.all %}
 
+                            <article class="list-group-item px-0">
+                                <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+
+                                    <div>
+                                        <h3 class="h6 mb-2">
+                                            {{ detalle.producto.nombre }}
+                                        </h3>
+
+                                        <div class="text-muted small">
+                                            Cantidad: {{ detalle.cantidad }}
+                                        </div>
+
+                                        <div class="text-muted small">
+                                            Precio unitario: {{ detalle.precio_unitario }}
+                                        </div>
+                                    </div>
+
+                                    <div class="fw-semibold">
+                                        Subtotal: {{ detalle.subtotal }}
+                                    </div>
+
+                                </div>
+                            </article>
+
+                        {% empty %}
+
+                            <p class="text-muted mb-0">
+                                El pedido no tiene productos.
+                            </p>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+
+        <div class="col-12 col-lg-4">
+
+            <section class="card shadow-sm mb-4">
+                <div class="card-body">
+
+                    <h2 class="h4 mb-4">
+                        Dirección de envío
+                    </h2>
+
+                    {% if pedido.direccion_envio %}
+
+                        <div class="small">
+                            <div class="mb-2">
+                                <span class="text-muted">Nombre:</span>
+                                {{ pedido.direccion_envio.nombre }}
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-muted">Dirección:</span>
+                                {{ pedido.direccion_envio.direccion }}
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-muted">Ciudad:</span>
+                                {{ pedido.direccion_envio.ciudad }}
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-muted">Departamento:</span>
+                                {{ pedido.direccion_envio.departamento }}
+                            </div>
+
+                            {% if pedido.direccion_envio.codigo_postal %}
+                                <div>
+                                    <span class="text-muted">Código postal:</span>
+                                    {{ pedido.direccion_envio.codigo_postal}}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                    {% else %}
+
+                        <p class="text-muted mb-0">
+                            No se ha seleccionado una dirección de envío.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+            </section>
+
+            <section class="card shadow-sm">
+                <div class="card-body">
+
+                    <h2 class="h4 mb-4">
+                        Resumen del pedido
+                    </h2>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal del pedido:</span>
+                        <span>{{ pedido.subtotal }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Costo de envío:</span>
+                        <span>{{ pedido.costo_envio }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Descuento:</span>
+                        <span>{{ pedido.descuento }}</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between fs-5 fw-bold">
+                        <span>Total:</span>
+                        <span>{{ pedido.total }}</span>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+
+    </div>
+
+    <div class="d-flex flex-column flex-md-row gap-2 mt-4">
+
+        {% if pedido.puede_cancelarse %}
+            <form 
+                action="{% url 'pedidos:cancelar' pedido.pk %}" 
+                method="post"
+            >
+                {% csrf_token %}
+
+                <button 
+                    type="submit"
+                    class="btn btn-outline-danger"
+                >
+                    Cancelar pedido
+                </button>
+            </form>
+        {% endif %}
+
+        {% if pago_pendiente %}
+            <form 
+                action="{% url 'pedidos:confirmar_pago' pedido.pk %}"
+                method="post"
+            >
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Confirmar pago
+                </button>
+            </form>
+        {% endif %}
+
+        <a 
+            href="{% url 'pedidos:carrito' %}"
+            class="btn btn-outline-primary"
+        >
+            Volver al carrito
+        </a>
+
+    </div>
+
+</div>
 {% endblock %}
