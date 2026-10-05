@@ -614,3 +614,44 @@ class DireccionViewTestCase(BaseTestCase):
                 pk=direccion.pk
             ).exists()
         )
+        
+    def test_eliminar_direccion_asociada_a_pedido_muestra_error(self):
+        
+        direccion = self.crear_direccion(es_principal=True)
+        
+        self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.post(
+            reverse(
+                "clientes:eliminar_direccion",
+                kwargs={"pk": direccion.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        self.assertRedirects(
+            response,
+            reverse("clientes:listar_direcciones"),
+        )
+        
+        self.assertTrue(
+            Direccion.objects.filter(
+                pk=direccion.pk
+            ).exists()
+        )
+        
+        messages = list(response.wsgi_request._messages)
+        
+        self.assertTrue(
+            any(
+                message.message == "No puedes eliminar esta dirección porque está asociada a un pedido."
+                for message in messages
+            )
+        )

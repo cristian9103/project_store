@@ -1,5 +1,7 @@
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 
+from pedidos.models.pedidos import Pedido, EstadoPedido
+from pedidos.services.calculos import ZERO
 from usuarios.models import Usuario
 from clientes.models import Cliente, Direccion
 
@@ -26,6 +28,17 @@ class BaseTestCase(TestCase):
             documento="123456789",
             telefono="3001234567",
         )
+        
+        self.pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            estado=EstadoPedido.PENDIENTE,
+            subtotal=ZERO,
+            costo_envio=ZERO,
+            descuento=ZERO,
+            total=ZERO,
+        )
+        
+        self.factory = RequestFactory()
         
     def crear_direccion(
         self,
