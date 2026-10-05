@@ -223,6 +223,21 @@ class DireccionViewTestCase(BaseTestCase):
             "Casa",
         )
         
+    def test_listar_direcciones_usuario_no_autenticado_redirige_login(self):
+        response = self.client.get(
+            reverse("clientes:lista_direcciones")
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        self.assertIn(
+            "login",
+            response.url,
+        )
+        
     def test_obtener_direccion_muestra_direccion_del_cliente(self):
         
         direccion = Direccion.objects.create(
@@ -284,6 +299,34 @@ class DireccionViewTestCase(BaseTestCase):
         self.assertEqual(
             response.status_code,
             404,
+        )
+        
+    def test_obtener_direccion_usuario_no_autenticado_redirige_login(self):
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Carrera 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        response = self.client.get(
+            reverse(
+                "clientes:detalle_direccion",
+                kwargs={"pk": direccion.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        
+        self.assertIn(
+            "login",
+            response.url,
         )
         
     def test_actualizar_direccion_del_cliente(self):
