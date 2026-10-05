@@ -432,6 +432,46 @@ class DireccionViewTestCase(BaseTestCase):
             "Carrera 80 # 50-60",
         )
         
+    def test_editar_direccion_del_cliente_muestra_formulario(self):
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Carrera 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse(
+                "clientes:editar_direccion",
+                kwargs={"pk": direccion.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertIn(
+            "form",
+            response.context,
+        )
+        
+        self.assertEqual(
+            response.context["form"].instance,
+            direccion,
+        )
+        
+        self.assertEqual(
+            response.context["direccion"],
+            direccion,
+        )
+        
     def test_eliminar_direccion_del_cliente(self):
         
         direccion = Direccion.objects.create(
@@ -541,5 +581,36 @@ class DireccionViewTestCase(BaseTestCase):
         self.assertFalse(
             Direccion.objects.filter(
                 pk=principal.pk
+            ).exists()
+        )
+        
+    def test_eliminar_direccion_con_get_devuelve_405(self):
+        direccion = Direccion.objects.create(
+            cliente=self.cliente,
+            nombre="Casa",
+            direccion="Carrera 10 # 20-30",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.client.force_login(self.usuario)
+        
+        response = self.client.get(
+            reverse(
+                "clientes:eliminar_direccion",
+                kwargs={"pk": direccion.pk},
+            )
+        )
+        
+        self.assertEqual(
+            response.status_code,
+            405,
+        )
+        
+        self.assertTrue(
+            Direccion.objects.filter(
+                pk=direccion.pk
             ).exists()
         )
