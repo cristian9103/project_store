@@ -1,6 +1,8 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.views import View
+from django.db.models.deletion import ProtectedError
 
 from clientes.forms import DireccionForm
 from clientes.selectors import (
@@ -146,7 +148,16 @@ class EliminarDireccionView(LoginRequiredMixin, View):
             cliente=cliente
         )
         
-        eliminar_direccion_service(direccion)
+        try:
+            eliminar_direccion_service(direccion)
+        except ProtectedError:
+            messages.error(
+                request,
+                "No puedes eliminar esta dirección porque está asociada a un pedido."
+            )
+            return redirect(
+                "clientes:lista_direcciones",
+            )
         
         return redirect(
             "clientes:lista_direcciones",

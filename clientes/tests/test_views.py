@@ -638,7 +638,7 @@ class DireccionViewTestCase(BaseTestCase):
         
         self.assertRedirects(
             response,
-            reverse("clientes:listar_direcciones"),
+            reverse("clientes:lista_direcciones"),
         )
         
         self.assertTrue(
