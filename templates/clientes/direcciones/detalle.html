@@ -1,56 +1,116 @@
 {% extends "base.html" %}
 
 {% block title %}
-Detalle dirección
+    Detalle de dirección
 {% endblock %}
 
 {% block content %}
+<div class="container py-4">
 
-<h1>Detalle de dirección</h1>
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
 
-<section>
-    <h2>{{ direccion.nombre }}</h2>
+            <div class="card shadow-sm">
 
-    {% if direccion.es_principal %}
-        <p><strong>Dirección principal</strong></p>
-    {% endif %}
+                <div class="card-body p-4">
 
-    <dl>
-        <dt>Dirección</dt>
-        <dd>{{ direccion.direccion }}</dd>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-start gap-2 mb-4">
 
-        <dt>Ciudad</dt>
-        <dd>{{ direccion.ciudad }}</dd>
+                        <div>
+                            <h1 class="h3 mb-1">
+                                {{ direccion.nombre }}
+                            </h1>
 
-        <dt>Departamento</dt>
-        <dd>{{ direccion.departamento }}</dd>
+                            <p class="text-muted mb-0">
+                                Detalle de la dirección
+                            </p>
+                        </div>
 
-        {% if direccion.codigo_postal %}
-            <dt>Código postal</dt>
-            <dd>{{ direccion.codigo_postal }}</dd>
-        {% endif %}
-    </dl>
-</section>
+                        {% if direccion.es_principal %}
+                            <span class="badge text-bg-secondary">
+                                Dirección principal
+                            </span>
+                        {% endif %}
 
-<div>
-    <a href="{% url 'clientes:lista_direcciones' %}">
-        Volver a mis direcciones
-    </a>
+                    </div>
 
-    <a href="{% url 'clientes:editar_direccion' direccion.pk %}">
-        Editar dirección
-    </a>
+                    <dl class="row mb-0">
 
-    <form 
-        action="{% url 'clientes:eliminar_direccion' direccion.pk %}" 
-        method="post"
-    >
-        {% csrf_token %}
+                        <dt class="col-12 col-sm-4 mb-1 mb-sm-3">
+                            Dirección
+                        </dt>
+                        <dd class="col-12 col-sm-8 mb-3 mb-sm-3">
+                            {{ direccion.direccion }}
+                        </dd>
 
-        <button type="submit">
-            Eliminar dirección
-        </button>
-    </form>
+                        <dt class="col-12 col-sm-4 mb-1 mb-sm-3">
+                            Ciudad
+                        </dt>
+                        <dd class="col-12 col-sm-8 mb-3 mb-sm-3">
+                            {{ direccion.ciudad }}
+                        </dd>
+
+                        <dt class="col-12 col-sm-4 mb-1 mb-sm-3">
+                            Departamento
+                        </dt>
+                        <dd class="col-12 col-sm-8 mb-3 mb-sm-3">
+                            {{ direccion.departamento }}
+                        </dd>
+
+                        {% if direccion.codigo_postal %}
+                            <dt class="col-12 col-sm-4 mb-1 mb-sm-0">
+                                Código postal
+                            </dt>
+                            <dd class="col-12 col-sm-8 mb-0">
+                                {{ direccion.codigo_postal }}
+                            </dd>
+                        {% endif %}
+
+                    </dl>
+
+                </div>
+
+                <div class="card-footer bg-transparent border-top">
+
+                    <div class="d-flex flex-column flex-sm-row gap-2">
+
+                        <a 
+                            href="{% url 'clientes:lista_direcciones' %}"
+                            class="btn btn-outline-secondary flex-grow-1"
+                        >
+                            Volver a mis direcciones
+                        </a>
+
+                        <a 
+                            href="{% url 'clientes:editar_direccion' direccion.pk %}"
+                            class="btn btn-outline-primary flex-grow-1"
+                        >
+                            Editar dirección
+                        </a>
+
+                        <form 
+                            action="{% url 'clientes:eliminar_direccion' direccion.pk %}"
+                            method="post"
+                            class="flex-grow-1"
+                        >
+                            {% csrf_token %}
+
+                            <button 
+                                type="submit"
+                                class="btn btn-outline-danger w-100"
+                            >
+                                Eliminar dirección
+                            </button>
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
 </div>
-
 {% endblock %}
