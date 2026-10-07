@@ -1,47 +1,161 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Mi historial
+    Mi historial
 {% endblock %}
 
 {% block content %}
+<div class="container py-4">
 
-<h1>Mis pedidos</h1>
-
-{% for pedido in pedidos %}
-    <div>
-        <h2>Pedido #{{ pedido.pk }}</h2>
-        
-        <p>Fecha: {{ pedido.fecha|date:"d/m/Y" }}</p>
-        <p>Estado: {{ pedido.get_estado_display }}</p>
-        <p>Total: {{ pedido.total }}</p>
-
-        <a href="{% url 'pedidos:detalle' pk=pedido.pk %}">
-            Ver detalle
-        </a>
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Mis pedidos</h1>
+        <p class="text-muted mb-0">
+            Consulta el estado y los detalles de tus pedidos.
+        </p>
     </div>
-{% empty %}
-    <p>Aún no tienes pedidos</p>
-{% endfor %}
 
-{% if is_paginated %}
-    <nav>
-        {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}">
-                Anterior
-            </a>
-        {% endif %}
+    {% for pedido in pedidos %}
 
-        <span>
-            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-        </span>
+        <div class="card shadow-sm mb-3">
 
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number}}">
-                Siguiente
-            </a>
-        {% endif %}
-    </nav>
-{% endif %}
+            <div class="card-body">
 
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3">
+
+                    <div>
+                        <h2 class="h5 mb-2">
+                            Pedido #{{ pedido.pk }}
+                        </h2>
+
+                        <div class="text-muted small">
+                            <div class="mb-1">
+                                <span class="fw-semibold">Fecha:</span>
+                                {{ pedido.fecha|date:"d/m/Y" }}
+                            </div>
+
+                            <div>
+                                <span class="fw-semibold">Estado:</span>
+                                <span class="badge text-bg-secondary">
+                                    {{ pedido.get_estado_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-md-end">
+                        <div class="text-muted small mb-1">
+                            Total
+                        </div>
+
+                        <div class="fs-5 fw-bold">
+                            ${{ pedido.total }}
+                        </div>
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-end">
+                    <a 
+                        href="{% url 'pedidos:detalle' pk=pedido.pk %}"
+                        class="btn btn-outline-primary"
+                    >
+                        Ver detalle
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+
+                <h2 class="h4 mb-3">
+                    Aún no tienes pedidos
+                </h2>
+
+                <p class="text-muted mb-4">
+                    Cuando realices una compra, tus pedidos aparecerán aquí.
+                </p>
+
+                <a 
+                    href="{% url 'catalogo:lista_productos' %}"
+                    class="btn btn-primary"
+                >
+                    Explorar productos
+                </a>
+
+            </div>
+        </div>
+
+    {% endfor %}
+
+    {% if is_paginated %}
+
+        <nav aria-label="Navegación del historial de pedidos">
+
+            <ul class="pagination justify-content-center">
+
+                {% if page_obj.has_previous %}
+
+                <li class="page-item">
+                    <a 
+                        class="page-link"
+                        href="?page={{ page_obj.previous_page_number }}"
+                    >
+                        Anterior
+                    </a>
+                </li>
+
+                {% endif %}
+
+                {% for numero in paginator.page_range %}
+
+                    {% if numero == page_obj.number %}
+
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">
+                                {{ numero }}
+                            </span>
+                        </li>
+
+                    {% else %}
+
+                        <li class="page-item">
+                            <a 
+                                class="page-link"
+                                href="?page={{ numero }}"
+                            >
+                                {{ numero }}
+                            </a>
+                        </li>
+
+                    {% endif %}
+
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+
+                    <li class="page-item">
+                        <a 
+                            class="page-link"
+                            href="?page={{ page_obj.next_page_number }}"
+                        >
+                            Siguiente
+                        </a>
+                    </li>
+
+                {% endif %}
+                
+            </ul>
+
+        </nav>
+
+    {% endif %}
+
+</div>
 {% endblock %}
