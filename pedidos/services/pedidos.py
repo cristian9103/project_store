@@ -161,6 +161,8 @@ def entregar_pedido(pedido):
 
 def cancelar_pedido(pedido):
     with transaction.atomic():
+        pedido = Pedido.objects.select_for_update().get(pk=pedido.pk)
+        
         if pedido.estado not in {
             EstadoPedido.PENDIENTE,
             EstadoPedido.PREPARACION,

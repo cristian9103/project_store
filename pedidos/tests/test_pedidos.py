@@ -1,3 +1,13 @@
+import threading
+from concurrent.futures import ThreadPoolExecutor
+
+from decimal import Decimal
+
+from unittest.mock import patch
+
+from django.db.models import ProtectedError
+from django.db import IntegrityError, close_old_connections
+from django.test import TransactionTestCase
 from django.urls import reverse
 
 from core.tests import BaseTestCase
@@ -31,15 +41,13 @@ from pedidos.exceptions import (
     DireccionPedidoInvalidaError,
     EstadoPagoInvalidoError,
 )
-from catalogo.models import Producto
+from catalogo.models import (
+    Producto, 
+    Marca,
+    Categoria,
+)
 from clientes.models import Direccion, Cliente
-
-from decimal import Decimal
-
-from django.db.models import ProtectedError
-from django.db import IntegrityError
-
-from unittest.mock import patch
+from usuarios.models import Usuario
 
 class PedidosTestCase(BaseTestCase):
     
@@ -3207,5 +3215,117 @@ class PedidosTestCase(BaseTestCase):
         self.assertEqual(
             self.pedido.estado,
             EstadoPedido.PREPARACION,
+        )
+        
+class CancelarPedidoConcurrenciaTest(TransactionTestCase):
+    def setUp(self):
+        usuario = Usuario.objects.create_user(
+            email="concurrencia@test.com",
+            password="123456789",
+        )
+
+        cliente = Cliente.objects.create(
+            usuario=usuario,
+            documento="123456789",
+            telefono="3001234567",
+        )
+        
+        categoria = Categoria.objects.create(nombre="Maquillaje")
+        marca = Marca.objects.create(nombre="Maybelline")
+
+        self.producto = Producto.objects.create(
+            categoria=categoria,
+            marca=marca,
+            sku="CONC001",
+            nombre="Labial",
+            precio_compra=Decimal("12000"),
+            precio_venta=Decimal("20000"),
+            stock=20,
+        )
+        
+        direccion = Direccion.objects.create(
+            cliente=cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+        
+        self.pedido = Pedido.objects.create(
+            cliente=cliente,
+            direccion_envio=direccion
+        )
+        
+        DetallePedido.objects.create(
+            pedido=self.pedido,
+            producto=self.producto,
+            precio_unitario=self.producto.precio_venta,
+            cantidad=3,
+        )
+
+        # La confirmación descuenta tres unidades y deja el
+        # pedido en preparación, que es un estado cancelable.
+        confirmar_pedido(self.pedido)
+        
+        self.producto.refresh_from_db()
+        self.assertEqual(
+            self.producto.stock,
+            17,
+        )
+        
+    def test_dos_cancelaciones_concurrentes_no_devuelven_stock_dos_veces(self):
+        # Cargamos ambas instancias antes de iniciar las operaciones.
+        # Así, las dos parten de una instancia que indica PREPARACIÓN.
+        pedido_a = Pedido.objects.get(pk=self.pedido.pk)
+        pedido_b = Pedido.objects.get(pk=self.pedido.pk)
+        
+        barrera = threading.Barrier(2)
+        
+        def cancelar(pedido):
+            close_old_connections()
+            try:
+                barrera.wait(timeout=10)
+                return cancelar_pedido(pedido)
+            finally:
+                close_old_connections()
+                
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futuros = [
+                executor.submit(cancelar, pedido_a),
+                executor.submit(cancelar, pedido_b),
+            ]
+            
+            resultados = []
+            errores = []
+            
+            for futuro in futuros:
+                try:
+                    resultados.append(futuro.result(timeout=20))
+                except EstadoPedidoInvalidoError as error:
+                    errores.append(error)
+                    
+        self.pedido.refresh_from_db()
+        self.producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.CANCELADO,
+        )
+        
+        self.assertEqual(
+            self.producto.stock,
+            20,
+        )
+        
+        self.assertEqual(
+            len(resultados),
+            1,
+        )
+        
+        self.assertEqual(
+            len(errores),
+            1,
         )
          
