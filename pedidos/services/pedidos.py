@@ -54,6 +54,8 @@ def confirmar_pedido(pedido):
     
     with transaction.atomic():
         
+        pedido = Pedido.objects.select_for_update().get(pk=pedido.pk)
+        
         if pedido.estado != EstadoPedido.PENDIENTE:
             raise EstadoPedidoInvalidoError(
                 "Solo los pedidos pendientes pueden confirmarse."

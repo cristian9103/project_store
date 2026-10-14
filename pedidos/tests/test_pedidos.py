@@ -3328,4 +3328,108 @@ class CancelarPedidoConcurrenciaTest(TransactionTestCase):
             len(errores),
             1,
         )
+        
+class ConfirmarPedidoConcurrenciaTest(TransactionTestCase):
+    
+    def setUp(self):
+        usuario = Usuario.objects.create_user(
+            email="concurrencia@test.com",
+            password="123456789",
+        )
+    
+        cliente = Cliente.objects.create(
+            usuario=usuario,
+            documento="123456789",
+            telefono="3001234567",
+        )
+    
+        categoria = Categoria.objects.create(nombre="Maquillaje")
+        marca = Marca.objects.create(nombre="Maybelline")
+    
+        self.producto = Producto.objects.create(
+            categoria=categoria,
+            marca=marca,
+            sku="CONC001",
+            nombre="Labial",
+            precio_compra=Decimal("12000"),
+            precio_venta=Decimal("20000"),
+            stock=20,
+        )
+    
+        direccion = Direccion.objects.create(
+            cliente=cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+    
+        self.pedido = Pedido.objects.create(
+            cliente=cliente,
+            direccion_envio=direccion
+        )
+    
+        DetallePedido.objects.create(
+            pedido=self.pedido,
+            producto=self.producto,
+            precio_unitario=self.producto.precio_venta,
+            cantidad=3,
+        )
+        
+    def test_dos_confirmaciones_concurrentes_no_descuentan_stock_dos_veces(self):
+        pedido_a = Pedido.objects.get(pk=self.pedido.pk)
+        pedido_b = Pedido.objects.get(pk=self.pedido.pk)
+        
+        barrera = threading.Barrier(2)
+        
+        def confirmar(pedido):
+            close_old_connections()
+            try:
+                barrera.wait(timeout=10)
+                return confirmar_pedido(pedido)
+            finally:
+                close_old_connections()
+                
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futuros = [
+                executor.submit(confirmar, pedido_a),
+                executor.submit(confirmar, pedido_b),
+            ]
+            
+            resultados = []
+            errores = []
+            
+            for futuro in futuros:
+                try:
+                    resultados.append(futuro.result(timeout=20))
+                except EstadoPedidoInvalidoError as error:
+                    errores.append(error)
+                    
+            print("\nConfirmaciones exitosas:", len(resultados))
+            print("Errores:", [(type(error).__name__, str(error)) for error in errores])
+                    
+        self.pedido.refresh_from_db()
+        self.producto.refresh_from_db()
+        
+        self.assertEqual(
+            self.pedido.estado,
+            EstadoPedido.PREPARACION,
+        )
+        
+        self.assertEqual(
+            self.producto.stock,
+            17,
+        )
+        
+        self.assertEqual(
+            len(resultados),
+            1,
+        )
+        
+        self.assertEqual(
+            len(errores),
+            1,
+        )
          
