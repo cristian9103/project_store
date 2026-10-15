@@ -129,12 +129,15 @@ class PedidosTestCase(BaseTestCase):
         )
         
         self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
         
         self.crear_detalle(
             cantidad=2
         )
         
         confirmar_pedido(self.pedido)
+        
+        self.pedido.refresh_from_db()
         
         nuevo_pedido = crear_pedido(self.cliente)
         
@@ -169,6 +172,7 @@ class PedidosTestCase(BaseTestCase):
         )
         
         self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
         
         # Act + Assert
         with self.assertRaises(PedidoVacioError):
@@ -188,6 +192,7 @@ class PedidosTestCase(BaseTestCase):
         )
         
         self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
         
         self.crear_detalle(cantidad=25)
         
@@ -248,6 +253,7 @@ class PedidosTestCase(BaseTestCase):
         )
         
         self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
         
         # Arrange
         self.crear_detalle(cantidad=2)
@@ -277,6 +283,7 @@ class PedidosTestCase(BaseTestCase):
         )
         
         self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
         
         cantidad = 3
         
@@ -311,6 +318,7 @@ class PedidosTestCase(BaseTestCase):
         )
         
         self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
         
         self.crear_detalle(cantidad=2)
         
@@ -408,6 +416,7 @@ class PedidosTestCase(BaseTestCase):
         )
         
         self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
         
         producto_2 = Producto.objects.create(
             categoria=self.categoria,
@@ -467,6 +476,7 @@ class PedidosTestCase(BaseTestCase):
         )
         
         self.pedido.direccion_envio = direccion
+        self.pedido.save(update_fields=["direccion_envio"])
         
         self.crear_detalle(
             cantidad=21
@@ -3432,4 +3442,116 @@ class ConfirmarPedidoConcurrenciaTest(TransactionTestCase):
             len(errores),
             1,
         )
+        
+class ConfirmarYCancelarConcurrenciaTest(TransactionTestCase):
+    
+    def setUp(self):
+        usuario = Usuario.objects.create_user(
+            email="concurrencia@test.com",
+            password="123456789",
+        )
+    
+        cliente = Cliente.objects.create(
+            usuario=usuario,
+            documento="123456789",
+            telefono="3001234567",
+        )
+    
+        categoria = Categoria.objects.create(nombre="Maquillaje")
+        marca = Marca.objects.create(nombre="Maybelline")
+    
+        self.producto = Producto.objects.create(
+            categoria=categoria,
+            marca=marca,
+            sku="CONC001",
+            nombre="Labial",
+            precio_compra=Decimal("12000"),
+            precio_venta=Decimal("20000"),
+            stock=20,
+        )
+    
+        direccion = Direccion.objects.create(
+            cliente=cliente,
+            nombre="Casa",
+            direccion="Cra 10",
+            ciudad="Medellín",
+            departamento="Antioquia",
+            codigo_postal="050001",
+            es_principal=True,
+        )
+    
+        self.pedido = Pedido.objects.create(
+            cliente=cliente,
+            direccion_envio=direccion
+        )
+    
+        DetallePedido.objects.create(
+            pedido=self.pedido,
+            producto=self.producto,
+            precio_unitario=self.producto.precio_venta,
+            cantidad=3,
+        )
+        
+    def test_confirmar_y_cancelar_concurrentemente_mantienen_consistencia(self):
+        pedido_confirmar = Pedido.objects.get(pk=self.pedido.pk)
+        pedido_cancelar = Pedido.objects.get(pk=self.pedido.pk)
+        
+        barrera = threading.Barrier(2)
+        
+        def ejecutar_confirmacion():
+            close_old_connections()
+            try:
+                barrera.wait(timeout=10)
+                return confirmar_pedido(pedido_confirmar)
+            finally:
+                close_old_connections()
+                
+        def ejecutar_cancelacion():
+            close_old_connections()
+            try:
+                barrera.wait(timeout=10)
+                return cancelar_pedido(pedido_cancelar)
+            finally:
+                close_old_connections()
+                
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futuro_confirmar = executor.submit(ejecutar_confirmacion)
+            futuro_cancelar = executor.submit(ejecutar_cancelacion)
+            
+            resultados = []
+            errores = []
+            
+            for futuro in (futuro_confirmar, futuro_cancelar):
+                try:
+                    resultados.append(futuro.result(timeout=20))
+                except EstadoPedidoInvalidoError as error:
+                    errores.append(error)
+                    
+        self.pedido.refresh_from_db()
+        self.producto.refresh_from_db()
+        
+        self.assertEqual(
+            len(resultados),
+            1,
+        )
+        
+        self.assertEqual(
+            len(errores),
+            1,
+        )
+        
+        if self.pedido.estado == EstadoPedido.PREPARACION:
+            self.assertEqual(
+                self.producto.stock,
+                17,
+            )
+        elif self.pedido.estado == EstadoPedido.CANCELADO:
+            self.assertEqual(
+                self.producto.stock,
+                20,
+            )
+        else:
+            self.fail(
+                f"Estado final inesperado: {self.pedido.estado}"
+            )
          
