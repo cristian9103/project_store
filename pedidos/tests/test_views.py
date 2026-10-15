@@ -386,20 +386,36 @@ class AgregarAlCarritoViewTest(BaseTestCase):
             }
         )
         
-        self.assertRedirects(
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertTemplateUsed(
             response,
-            reverse(
-                "catalogo:detalle_producto",
-                kwargs={
-                    "pk": self.producto.pk
-                }
-            )
+            "catalogo/detalle_producto.html",
+        )
+        
+        self.assertEqual(
+            response.context["producto"].pk,
+            self.producto.pk,
+        )
+        
+        form = response.context["form"]
+        
+        self.assertFalse(
+            form.is_valid()
+        )
+        
+        self.assertIn(
+            "cantidad",
+            form.errors
         )
         
         self.assertFalse(
             DetallePedido.objects.filter(
                 pedido=self.pedido,
-                producto=self.producto
+                producto=self.producto,
             ).exists()
         )
         
@@ -421,14 +437,19 @@ class AgregarAlCarritoViewTest(BaseTestCase):
             }
         )
         
-        self.assertRedirects(
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+        
+        self.assertTemplateUsed(
             response,
-            reverse(
-                "catalogo:detalle_producto",
-                kwargs={
-                    "pk": self.producto.pk
-                }
-            )
+            "catalogo/detalle_producto.html",
+        )
+        
+        self.assertIn(
+            "cantidad",
+            response.context["form"].errors,
         )
         
         self.assertFalse(
@@ -518,6 +539,17 @@ class AgregarAlCarritoViewTest(BaseTestCase):
         self.assertContains(
             response,
             "No hay suficiente stock.",
+        )
+        
+        form = response.context["form"]
+        
+        self.assertFalse(
+            form.is_valid()
+        )
+        
+        self.assertIn(
+            "cantidad",
+            form.errors,
         )
         
     def test_agregar_producto_exitosamente_crea_detalle_y_redirige(self):
