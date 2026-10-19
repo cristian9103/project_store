@@ -69,6 +69,8 @@ class ClienteModelTest(BaseTestCase):
     def test_eliminar_usuario_elimina_cliente(self):
         
         cliente_id = self.cliente.pk
+
+        self.pedido.delete()
         
         self.usuario.delete()
         
@@ -167,6 +169,8 @@ class DireccionModelTest(BaseTestCase):
         direccion = self.crear_direccion()
         
         direccion_id = direccion.pk
+
+        self.pedido.delete()
         
         self.cliente.delete()
         

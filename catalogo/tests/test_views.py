@@ -196,15 +196,17 @@ class ProductoDetailViewTest(BaseTestCase):
         
         self.assertEqual(
             response.status_code,
-            302,
+            200,
         )
         
-        self.assertRedirects(
+        self.assertTemplateUsed(
             response,
-            reverse(
-                "catalogo:detalle_producto",
-                kwargs={"pk": self.producto.pk},
-            ),
+            "catalogo/detalle_producto.html",
+        )
+
+        self.assertIn(
+            "cantidad",
+            response.context["form"].errors,
         )
         
         self.assertFalse(
@@ -226,15 +228,22 @@ class ProductoDetailViewTest(BaseTestCase):
         
         self.assertEqual(
             response.status_code,
-            302,
+            200,
         )
         
-        self.assertRedirects(
+        self.assertTemplateUsed(
             response,
-            reverse(
-                "catalogo:detalle_producto",
-                kwargs={"pk": self.producto.pk},
-            ),
+            "catalogo/detalle_producto.html",
+        )
+
+        self.assertIn(
+            "cantidad",
+            response.context["form"].errors,
+        )
+
+        self.assertIn(
+            "No hay suficiente stock.",
+            response.context["form"].errors["cantidad"],
         )
         
         self.assertFalse(
