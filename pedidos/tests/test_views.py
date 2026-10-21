@@ -1001,7 +1001,7 @@ class ActualizarCantidadViewTest(BaseTestCase):
         
         self.client.force_login(self.otro_usuario)
         
-        self.client.post(
+        response = self.client.post(
             reverse(
                 "pedidos:actualizar_cantidad",
                 kwargs={
@@ -1011,6 +1011,11 @@ class ActualizarCantidadViewTest(BaseTestCase):
             data={
                 "cantidad": 3
             }
+        )
+
+        self.assertEqual(
+            response.status_code,
+            404,
         )
         
         detalle.refresh_from_db()
@@ -1038,6 +1043,45 @@ class ActualizarCantidadViewTest(BaseTestCase):
         self.assertEqual(
             response.status_code,
             404
+        )
+
+    def test_actualizar_cantidad_cero_recalcula_totales_del_pedido(self):
+        detalle = self.crear_detalle(cantidad=2)
+
+        actualizar_totales(self.pedido)
+        self.pedido.refresh_from_db()
+
+        self.client.force_login(self.usuario)
+
+        response = self.client.post(
+            reverse(
+                "pedidos:actualizar_cantidad",
+                kwargs={"detalle_id": detalle.pk},
+            ),
+            data={"cantidad": 0},
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito"),
+        )
+
+        self.pedido.refresh_from_db()
+
+        self.assertFalse(
+            DetallePedido.objects.filter(
+                pk=detalle.pk
+            ).exists()
+        )
+
+        self.assertEqual(
+            self.pedido.subtotal,
+            ZERO,
+        )
+
+        self.assertEqual(
+            self.pedido.total,
+            ZERO,
         )
         
 class VaciarCarritoViewTest(BaseTestCase):
