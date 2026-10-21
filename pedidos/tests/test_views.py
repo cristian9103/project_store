@@ -1155,6 +1155,104 @@ class VaciarCarritoViewTest(BaseTestCase):
                 pk=detalle.pk
             ).exists()
         )
+
+    def test_vaciar_carrito_sin_detalles(self):
+        self.client.force_login(self.usuario)
+
+        response = self.client.post(
+            reverse("pedidos:vaciar_carrito")
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito"),
+        )
+
+        self.assertFalse(
+            DetallePedido.objects.filter(
+                pedido=self.pedido
+            ).exists()
+        )
+
+        self.pedido.refresh_from_db()
+
+        self.assertEqual(
+            self.pedido.subtotal,
+            Decimal("0.00"),
+        )
+
+        self.assertEqual(
+            self.pedido.total,
+            Decimal("0.00"),
+        )
+
+    def test_vaciar_carrito_no_afecta_a_otro_cliente(self):
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+
+        otro_pedido = Pedido.objects.create(
+            cliente=otro_cliente,
+            estado=EstadoPedido.PENDIENTE,
+            subtotal=ZERO,
+            costo_envio=ZERO,
+            descuento=ZERO,
+            total=ZERO,
+        )
+
+        otro_detalle = DetallePedido.objects.create(
+            pedido=otro_pedido,
+            producto=self.producto,
+            precio_unitario=self.producto.precio_venta,
+            cantidad=2,
+        )
+
+        self.crear_detalle(cantidad=1)
+
+        self.client.force_login(self.usuario)
+
+        response = self.client.post(
+            reverse("pedidos:vaciar_carrito")
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito"),
+        )
+
+        self.assertFalse(
+            DetallePedido.objects.filter(
+                pedido=self.pedido
+            ).exists()
+        )
+
+        self.assertTrue(
+            DetallePedido.objects.filter(
+                pk=otro_detalle.pk
+            ).exists()
+        )
+
+    def test_vaciar_carrito_no_permite_get(self):
+        detalle = self.crear_detalle(cantidad=2)
+
+        self.client.force_login(self.usuario)
+
+        response = self.client.get(
+            reverse("pedidos:vaciar_carrito")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            405,
+        )
+
+        self.assertTrue(
+            DetallePedido.objects.filter(
+                pk=detalle.pk
+            ).exists()
+        )
         
 class ConfirmarPedidoViewTest(BaseTestCase):
     
