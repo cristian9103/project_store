@@ -3344,6 +3344,12 @@ class IniciarPagoViewTest(BaseTestCase):
             response,
             reverse("pedidos:carrito"),
         )
+
+        self.assertFalse(
+            Pago.objects.filter(
+                pedido=self.pedido,
+            ).exists()
+        )
         
     def test_pago_confirmar_cambia_pedido_a_preparacion(self):
         self.client.force_login(self.usuario)
