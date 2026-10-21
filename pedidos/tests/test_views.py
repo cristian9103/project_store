@@ -119,10 +119,20 @@ class CarritoDetailViewTest(BaseTestCase):
         response = self.client.get(
             reverse("pedidos:carrito")
         )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
         
         self.assertContains(
             response,
             'name="cantidad"',
+        )
+
+        self.assertContains(
+            response,
+            'value="2"',
         )
         
     def test_carrito_muestra_precio_unitario(self):
