@@ -20,11 +20,23 @@ def calcular_total(pedido, subtotal=None):
 
 def actualizar_totales(pedido):
     subtotal = calcular_subtotal(pedido)
+
+    if not pedido.detalles_pedido.exists():
+        pedido.costo_envio = ZERO
+        pedido.descuento = ZERO
+
     total = calcular_total(pedido, subtotal)
     
     pedido.subtotal = subtotal
     pedido.total = total
     
-    pedido.save(update_fields=["subtotal", "total"])
+    pedido.save(
+        update_fields=[
+            "subtotal",
+            "costo_envio",
+            "descuento", 
+            "total",
+        ]
+    )
     
     return pedido

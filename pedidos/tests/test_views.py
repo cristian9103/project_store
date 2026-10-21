@@ -1253,6 +1253,48 @@ class VaciarCarritoViewTest(BaseTestCase):
                 pk=detalle.pk
             ).exists()
         )
+
+    def test_vaciar_carrito_restablece_todos_los_importes(self):
+        self.crear_detalle(cantidad=2)
+
+        self.pedido.costo_envio = Decimal("5000.00")
+        self.pedido.descuento = Decimal("3000.00")
+        self.pedido.save(
+            update_fields=["costo_envio", "descuento"]
+        )
+
+        self.client.force_login(self.usuario)
+
+        response = self.client.post(
+            reverse("pedidos:vaciar_carrito")
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("pedidos:carrito"),
+        )
+
+        self.pedido.refresh_from_db()
+
+        self.assertEqual(
+            self.pedido.subtotal,
+            ZERO,
+        )
+
+        self.assertEqual(
+            self.pedido.costo_envio,
+            ZERO,
+        )
+
+        self.assertEqual(
+            self.pedido.descuento,
+            ZERO,
+        )
+
+        self.assertEqual(
+            self.pedido.total,
+            ZERO,
+        )
         
 class ConfirmarPedidoViewTest(BaseTestCase):
     
