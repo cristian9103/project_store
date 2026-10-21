@@ -332,6 +332,62 @@ class CarritoDetailViewTest(BaseTestCase):
             response,
             "No tienes productos en el carrito.",
         )
+
+    def test_carrito_no_muestra_productos_de_otro_cliente(self):
+        otro_cliente = Cliente.objects.create(
+            usuario=self.otro_usuario,
+            documento="987654321",
+            telefono="3119876543",
+        )
+
+        otro_producto = Producto.objects.create(
+            categoria=self.categoria,
+            marca=self.marca,
+            sku="CRE001",
+            nombre="Crema de prueba ajena",
+            precio_compra=Decimal("10_000"),
+            precio_venta=Decimal("15_000"),
+            stock=10,
+        )
+
+        otro_pedido = Pedido.objects.create(
+            cliente=otro_cliente,
+            estado=EstadoPedido.PENDIENTE,
+            subtotal=ZERO,
+            costo_envio=ZERO,
+            descuento=ZERO,
+            total=ZERO,
+        )
+
+        DetallePedido.objects.create(
+            pedido=otro_pedido,
+            producto=otro_producto,
+            precio_unitario=otro_producto.precio_venta,
+            cantidad=1,
+        )
+
+        self.crear_detalle(cantidad=1)
+
+        self.client.force_login(self.usuario)
+
+        response = self.client.get(
+            reverse("pedidos:carrito")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            response,
+            self.producto.nombre,
+        )
+
+        self.assertNotContains(
+            response,
+            otro_producto.nombre,
+        )
         
 class AgregarAlCarritoViewTest(BaseTestCase):
     
